@@ -1,0 +1,10 @@
+[package]
+name = "bitceptron-retriever-gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitceptron-retriever = { git="https://github.com/bitceptron/bitceptron-retriever.git"}
+getset = "0.1.2"
+iced = "0.12.1"
+regex = "1.10.4"
