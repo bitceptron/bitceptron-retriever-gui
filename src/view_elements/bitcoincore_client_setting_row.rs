@@ -9,10 +9,7 @@ use crate::{
         setting_input_fixed::SettingInputFixedMessage,
         setting_input_in_gui::SettingInputInGuiMessage, AppMessage,
     },
-    retriever_styles::{
-        fix_button_style::FixButtonStyle, retriever_colors::BITCOIN_ORANGE_COLOR,
-        sanity_checked_text_input::SanityCheckedTextInput,
-    },
+    retriever_styles::{fix_button_style::FixButtonStyle, retriever_colors::BITCOIN_ORANGE_COLOR},
     RetrieverApp,
 };
 
@@ -134,17 +131,18 @@ pub fn bitcoincore_cookie_path_block(app: &RetrieverApp) -> iced::Element<'_, Ap
         "".to_string(),
         app.bitcoincore_client_setting_input.get_gui_cookie_path(),
         Box::new(|new_cookie_path| {
-        AppMessage::SettingInputInGuiChanged(
-            SettingInputInGuiMessage::BitcoincoreCookiePathChanged(new_cookie_path),
-        )
-    }),
-        app.bitcoincore_client_setting_input.is_gui_cookie_path_sane(),
+            AppMessage::SettingInputInGuiChanged(
+                SettingInputInGuiMessage::BitcoincoreCookiePathChanged(new_cookie_path),
+            )
+        }),
+        app.bitcoincore_client_setting_input
+            .is_gui_cookie_path_sane(),
         app.bitcoincore_client_setting_input.is_cookie_path_fixed(),
     )
 }
 
 pub fn client_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if !app.bitcoincore_client_setting_input.is_gui_input_fixed()
+    if !app.bitcoincore_client_setting_input.is_input_fixed()
         && app.bitcoincore_client_setting_input.is_gui_input_sane()
     {
         Button::new(

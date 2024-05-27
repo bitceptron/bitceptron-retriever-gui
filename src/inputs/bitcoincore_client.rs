@@ -41,19 +41,19 @@ impl BitcoincoreClientInput {
         Ok(())
     }
 
-    pub fn set_url(&mut self, url: String) {
+    pub fn set_url_from_gui_input(&mut self, url: String) {
         self.gui_input.gui_url = UrlGuiData::new(url.trim().to_string());
     }
 
-    pub fn set_rpc_port(&mut self, rpc_port: String) {
+    pub fn set_rpc_port_from_gui_input(&mut self, rpc_port: String) {
         self.gui_input.gui_rpc_port = RpcPortGuiData::new(rpc_port.trim().to_string());
     }
 
-    pub fn set_timeout(&mut self, timeout: String) {
+    pub fn set_timeout_from_gui_input(&mut self, timeout: String) {
         self.gui_input.gui_timeout = TimeoutGuiData::new(timeout.trim().to_string());
     }
 
-    pub fn set_cookie_path(&mut self, cookie_path: String) {
+    pub fn set_cookie_path_from_gui_input(&mut self, cookie_path: String) {
         self.gui_input.gui_cookie_path = CookiePathGuiData::new(cookie_path.trim().to_string());
     }
 
@@ -140,7 +140,7 @@ impl BitcoincoreClientInput {
         self.in_use.is_some() && (self.get_gui_cookie_path() == self.get_in_use_cookie_path())
     }
 
-    pub fn is_gui_input_fixed(&self) -> bool {
+    pub fn is_input_fixed(&self) -> bool {
         self.get_gui_url() == self.get_in_use_url()
             && self.get_gui_rpc_port() == self.get_in_use_rpc_port()
             && self.get_gui_timeout() == self.get_in_use_timeout()

@@ -1,8 +1,8 @@
 use iced::{
     widget::{
-        text,
-        Button, Checkbox, Column, PickList, Row, Rule, Space, Text, TextEditor, TextInput,
-    }, Alignment, Font, Length
+        text, Button, Checkbox, Column, PickList, Row, Rule, Space, Text, TextEditor, TextInput,
+    },
+    Alignment, Font, Length,
 };
 
 use crate::{
@@ -10,9 +10,14 @@ use crate::{
         setting_input_fixed::SettingInputFixedMessage,
         setting_input_in_gui::SettingInputInGuiMessage, AppMessage,
     },
-    retriever_styles::{fix_button_style::FixButtonStyle, retriever_colors::BITCOIN_ORANGE_COLOR},
+    retriever_styles::{
+        fix_button_style::FixButtonStyle, retriever_colors::BITCOIN_ORANGE_COLOR,
+        sanity_check_light::SanityCheckLight,
+    },
     RetrieverApp,
 };
+
+use super::common::sanity_checked_text_input;
 
 pub fn exploration_setting_row(
     app: &RetrieverApp,
@@ -89,7 +94,10 @@ pub fn section_title(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
                 .push(
                     Text::new("exploration settings")
                         .size(17)
-                        .font(Font{  weight: iced::font::Weight::Bold, ..Default::default() })
+                        .font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
                         .style(iced::theme::Text::Color(BITCOIN_ORANGE_COLOR)),
                 )
                 .push(Space::new(Length::Fill, 10))
@@ -102,8 +110,8 @@ pub fn section_title(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
 }
 
 pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if !app.bitcoincore_client_setting_input.is_gui_input_fixed()
-        && app.bitcoincore_client_setting_input.is_gui_input_sane()
+    if !app.explorer_setting_input.is_input_fixed()
+        && app.explorer_setting_input.is_gui_input_sane()
     {
         Button::new(
             text("Fix Settings")
@@ -114,7 +122,7 @@ pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, A
         .height(30)
         .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
         .on_press(AppMessage::SettingInputGotFixed(
-            SettingInputFixedMessage::BitcoincoreClientSettingFixed,
+            SettingInputFixedMessage::ExplorerSettingFixed,
         ))
         .into()
     } else {
@@ -128,31 +136,81 @@ pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, A
 
 pub fn base_derivation_paths_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(Text::new("base derivation paths:"))
-        .push(Space::new(7, 10))
-        .push(TextInput::new("Enter base derivation paths", "m").width(Length::Fill))
+        .push(sanity_checked_text_input(
+            app,
+            25,
+            None,
+            "base derivation paths:".to_string(),
+            "".to_string(),
+            app.explorer_setting_input.get_gui_base_derivation_paths(),
+            Box::new(|base_derivation_paths| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::BaseDerivationPathsChanged(base_derivation_paths),
+                )
+            }),
+            app.explorer_setting_input
+                .is_gui_base_derivation_paths_sane(),
+            app.explorer_setting_input.is_base_derivation_paths_fixed(),
+        ))
         .push(Space::new(10, 10))
         .push(text("use presets:"))
         .push(Space::new(7, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new(
+                "",
+                app.explorer_setting_input
+                    .get_gui_base_derivation_paths_from_presets(),
+            )
+            .on_toggle(|base_derivation_paths_from_presets| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::BaseDerivationPathsFromPresetsChanged(
+                        base_derivation_paths_from_presets,
+                    ),
+                )
+            }),
+        )
         .align_items(Alignment::Center)
         .into()
 }
 
 pub fn exploration_path_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(Text::new("exploration path:"))
-        .push(Space::new(7, 10))
-        .push(TextInput::new("Enter exploration path", "m").width(Length::Fill))
+        .push(sanity_checked_text_input(
+            app,
+            25,
+            None,
+            "exploration path:".to_string(),
+            "".to_string(),
+            app.explorer_setting_input.get_gui_exploration_path(),
+            Box::new(|exploration_path| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::ExplorationPathChanged(exploration_path),
+                )
+            }),
+            app.explorer_setting_input.is_gui_exploration_path_sane(),
+            app.explorer_setting_input.is_exploration_path_fixed(),
+        ))
         .align_items(Alignment::Center)
         .into()
 }
 
 pub fn exploration_depth_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(Text::new("exploration depth:"))
-        .push(Space::new(7, 10))
-        .push(TextInput::new("Enter exploration depth", "50").width(60))
+        .push(sanity_checked_text_input(
+            app,
+            25,
+            Some(60),
+            "exploration depth:".to_string(),
+            "".to_string(),
+            app.explorer_setting_input.get_gui_exploration_depth(),
+            Box::new(|exploration_depth| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::ExplorationDepthChanged(exploration_depth),
+                )
+            }),
+            app.explorer_setting_input.is_gui_exploration_depth_sane(),
+            app.explorer_setting_input.is_exploration_depth_fixed(),
+        ))
         .align_items(Alignment::Center)
         .into()
 }
@@ -161,7 +219,11 @@ pub fn sweep_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
         .push(text("sweep:"))
         .push(Space::new(7, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_sweep()).on_toggle(|sweep| {
+                AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::SweepChanged(sweep))
+            }),
+        )
         .align_items(Alignment::Center)
         .into()
 }
@@ -171,12 +233,19 @@ pub fn network_selection_block(app: &RetrieverApp) -> iced::Element<'_, AppMessa
         .push(Text::new("network:"))
         .push(Space::new(7, 10))
         .push(PickList::new(
-            ["Bitcoin", "Testnet", "Regtest", "Signet"],
-            Some("Bitcoin"),
+            // ["Bitcoin", "Testnet", "Regtest", "Signet"],
+            [
+                bitcoin::Network::Bitcoin,
+                bitcoin::Network::Testnet,
+                bitcoin::Network::Regtest,
+                bitcoin::Network::Signet,
+            ],
+            // Some("Bitcoin"),
+            Some(app.explorer_setting_input.get_gui_network()),
             |network| {
-                AppMessage::SettingInputInGuiChanged(
-                    SettingInputInGuiMessage::ExplorerNetworkChanged(network.to_string()),
-                )
+                AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::NetworkChanged(
+                    network,
+                ))
             },
         ))
         .align_items(Alignment::Center)
@@ -187,28 +256,82 @@ pub fn covered_descriptors_block(app: &RetrieverApp) -> iced::Element<'_, AppMes
     Row::new()
         .push(text("p2pk:"))
         .push(Space::new(5, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_p2pk()).on_toggle(|p2pk| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::P2pkInclusionChanged(p2pk),
+                )
+            }),
+        )
         .push(text("p2pkh:"))
         .push(Space::new(5, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_p2pkh()).on_toggle(|p2pkh| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::P2pkhInclusionChanged(p2pkh),
+                )
+            }),
+        )
         .push(text("p2wpk:"))
         .push(Space::new(5, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_p2wpkh()).on_toggle(|p2wpk| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::P2wpkhInclusionChanged(p2wpk),
+                )
+            }),
+        )
         .push(text("p2shwpkh:"))
         .push(Space::new(5, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_p2shwpkh()).on_toggle(
+                |p2shwpkh| {
+                    AppMessage::SettingInputInGuiChanged(
+                        SettingInputInGuiMessage::P2shwpkhInclusionChanged(p2shwpkh),
+                    )
+                },
+            ),
+        )
         .push(text("p2tr:"))
         .push(Space::new(5, 10))
-        .push(Checkbox::new("", false))
+        .push(
+            Checkbox::new("", app.explorer_setting_input.get_gui_p2tr()).on_toggle(|p2tr| {
+                AppMessage::SettingInputInGuiChanged(
+                    SettingInputInGuiMessage::P2trInclusionChanged(p2tr),
+                )
+            }),
+        )
+        .push(
+            Button::new("")
+                .height(25)
+                .style(iced::theme::Button::Custom(Box::new(SanityCheckLight {
+                    is_sane: app
+                        .explorer_setting_input
+                        .is_gui_selected_descriptors_sane(),
+                    is_fixed: app.explorer_setting_input.is_selected_descriptors_fixed(),
+                }))),
+        )
         .align_items(Alignment::Center)
         .into()
 }
 
 pub fn datadir_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(text("data directory:"))
-        .push(Space::new(7, 10))
-        .push(TextInput::new("Enter data directory", ""))
+        .push(sanity_checked_text_input(
+            app,
+            25,
+            None,
+            "data dir:".to_string(),
+            "".to_string(),
+            app.explorer_setting_input.get_gui_data_dir(),
+            Box::new(|data_dir| {
+                AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::DataDirChanged(
+                    data_dir,
+                ))
+            }),
+            app.explorer_setting_input.is_gui_data_dir_sane(),
+            app.explorer_setting_input.is_data_dir_fixed(),
+        ))
         .align_items(Alignment::Center)
         .into()
 }
@@ -226,6 +349,15 @@ pub fn mnemonic_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
                     ))
                 }),
         )
+        .push(Space::new(1, 10))
+        .push(
+            Button::new("")
+                .height(50)
+                .style(iced::theme::Button::Custom(Box::new(SanityCheckLight {
+                    is_sane: app.explorer_setting_input.is_gui_mnemonic_sane(),
+                    is_fixed: app.explorer_setting_input.is_mnemonic_fixed(),
+                }))),
+        )
         .align_items(Alignment::Center)
         .into()
 }
@@ -235,9 +367,22 @@ pub fn passphrase_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         .push(text("passphrase:"))
         .push(Space::new(7, 10))
         .push(
-            TextInput::new("Enter passphrase", "")
-                .secure(true)
+            TextInput::new("", &app.explorer_setting_input.get_gui_passphrase())
+                .on_input(|passphrase| {
+                    AppMessage::SettingInputInGuiChanged(
+                        SettingInputInGuiMessage::PassphraseChanged(passphrase),
+                    )
+                })
                 .width(Length::Fill),
+        )
+        .push(Space::new(1, 10))
+        .push(
+            Button::new("")
+                .height(25)
+                .style(iced::theme::Button::Custom(Box::new(SanityCheckLight {
+                    is_sane: app.explorer_setting_input.is_gui_passphrase_sane(),
+                    is_fixed: app.explorer_setting_input.is_passphrase_fixed(),
+                }))),
         )
         .align_items(Alignment::Center)
         .into()
