@@ -2,4 +2,5 @@
 pub enum SettingInputFixedMessage {
     BitcoincoreClientSettingFixed,
     ExplorerSettingFixed,
+    RetrieverSettingFixed,
 }

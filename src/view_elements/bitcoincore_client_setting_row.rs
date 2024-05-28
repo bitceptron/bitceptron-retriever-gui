@@ -1,6 +1,6 @@
 use iced::{
     advanced::widget::Text,
-    widget::{text, Button, Column, Row, Rule, Space, TextInput},
+    widget::{text, Button, Column, Row, Rule, Space},
     Alignment, Font, Length,
 };
 
@@ -158,10 +158,14 @@ pub fn client_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, AppMes
         ))
         .into()
     } else {
-        Button::new(text("Fix Settings").horizontal_alignment(iced::alignment::Horizontal::Center))
-            .width(150)
-            .height(30)
-            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
-            .into()
+        Button::new(
+            text("Fix Settings")
+                .horizontal_alignment(iced::alignment::Horizontal::Center)
+                .vertical_alignment(iced::alignment::Vertical::Center),
+        )
+        .width(150)
+        .height(30)
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+        .into()
     }
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn sanity_checked_text_input(
-    app: &RetrieverApp,
+    _app: &RetrieverApp,
     light_height: u16,
     input_width: Option<u16>,
     title: String,

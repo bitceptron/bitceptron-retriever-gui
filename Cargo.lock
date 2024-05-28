@@ -268,15 +268,13 @@ checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 [[package]]
 name = "bitceptron-retriever"
 version = "1.0.0"
-source = "git+https://github.com/bitceptron/bitceptron-retriever.git#7328da3074f154058ac0b6bf7239cc29cad0c1a3"
+source = "git+https://github.com/bitceptron/bitceptron-retriever.git#0c0f8f82bff796062059b255d9c8ec01d07dbc4b"
 dependencies = [
  "bip39",
  "bitcoin",
  "bitcoincore-rpc",
- "bytes",
  "clap",
  "config",
- "futures",
  "getset",
  "hashbrown 0.14.5",
  "hex",
@@ -288,7 +286,6 @@ dependencies = [
  "serde",
  "strum",
  "tokio",
- "tokio-stream",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
@@ -306,6 +303,7 @@ dependencies = [
  "getset",
  "iced",
  "regex",
+ "tokio",
 ]
 
 [[package]]
@@ -1618,9 +1616,9 @@ checksum = "f8478577c03552c21db0e2724ffb8986a5ce7af88107e6be5d2ee6e158c12800"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
 dependencies = [
  "either",
 ]
@@ -3289,17 +3287,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-stream"
-version = "0.1.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "267ac89e0bec6e691e5813911606935d77c476ff49024f98abcea3e7b15e37af"
-dependencies = [
- "futures-core",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "toml"
 version = "0.8.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4314,9 +4301,9 @@ dependencies = [
 
 [[package]]
 name = "zeroize"
-version = "1.7.0"
+version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
+checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
 dependencies = [
  "zeroize_derive",
 ]

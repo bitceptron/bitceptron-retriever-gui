@@ -1,5 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
+use bitceptron_retriever::client::client_setting::ClientSetting;
 use getset::Getters;
 use regex::Regex;
 
@@ -39,6 +40,16 @@ impl BitcoincoreClientInput {
         };
         self.in_use = Some(in_use);
         Ok(())
+    }
+
+    pub fn to_client_setting(&self) -> ClientSetting {
+        if !self.is_input_fixed() {panic!("Client setting output was called before fixing gui settings")}
+        ClientSetting::new(
+            &self.get_in_use_url(),
+            &self.get_in_use_rpc_port(),
+            &self.get_in_use_cookie_path(),
+            self.get_in_use_timeout(),
+        )
     }
 
     pub fn set_url_from_gui_input(&mut self, url: String) {
@@ -87,10 +98,10 @@ impl BitcoincoreClientInput {
         }
     }
 
-    pub fn get_in_use_timeout(&self) -> String {
+    pub fn get_in_use_timeout(&self) -> u64 {
         match &self.in_use {
-            Some(in_use) => in_use.get_in_use_timeout_seconds().to_string(),
-            None => "".to_owned(),
+            Some(in_use) => in_use.get_in_use_timeout_seconds().to_owned(),
+            None => 0.to_owned(),
         }
     }
 
@@ -133,7 +144,7 @@ impl BitcoincoreClientInput {
     }
 
     pub fn is_timeout_fixed(&self) -> bool {
-        self.in_use.is_some() && (self.get_gui_timeout() == self.get_in_use_timeout())
+        self.in_use.is_some() && (self.get_gui_timeout() == self.get_in_use_timeout().to_string())
     }
 
     pub fn is_cookie_path_fixed(&self) -> bool {
@@ -143,7 +154,7 @@ impl BitcoincoreClientInput {
     pub fn is_input_fixed(&self) -> bool {
         self.get_gui_url() == self.get_in_use_url()
             && self.get_gui_rpc_port() == self.get_in_use_rpc_port()
-            && self.get_gui_timeout() == self.get_in_use_timeout()
+            && self.get_gui_timeout() == self.get_in_use_timeout().to_string()
             && self.get_gui_cookie_path() == self.get_in_use_cookie_path()
     }
 }
