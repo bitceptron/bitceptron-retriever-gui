@@ -152,7 +152,9 @@ pub fn client_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, AppMes
         )
         .width(150)
         .height(30)
-        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {
+            is_fixed: app.bitcoincore_client_setting_input.is_input_fixed(),
+        })))
         .on_press(AppMessage::SettingInputGotFixed(
             SettingInputFixedMessage::BitcoincoreClientSettingFixed,
         ))
@@ -165,7 +167,9 @@ pub fn client_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, AppMes
         )
         .width(150)
         .height(30)
-        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {
+            is_fixed: app.bitcoincore_client_setting_input.is_input_fixed(),
+        })))
         .into()
     }
 }

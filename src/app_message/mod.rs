@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use bitceptron_retriever::{error::RetrieverError, retriever::Retriever};
+use bitceptron_retriever::{error::RetrieverError, path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio}, retriever::Retriever, uspk_set::UnspentScriptPupKeysSet};
 
 use self::{setting_input_fixed::SettingInputFixedMessage, setting_input_in_gui::SettingInputInGuiMessage};
 
@@ -16,7 +16,11 @@ pub enum AppMessage {
     DumpFileDone,
     PopulateUtxoDB,
     Search,
+    SearchResultPrepared(Vec<PathDescriptorPair>),
     RetrieverCreated(Retriever),
+    SetPopulated(UnspentScriptPupKeysSet),
     Error(Arc<RetrieverError>),
+    GetDetails,
+    DetailsReady(Option<Vec<PathScanResultDescriptorTrio>>),
     None,
 }

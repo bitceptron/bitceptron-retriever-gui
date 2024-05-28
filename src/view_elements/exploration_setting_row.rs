@@ -110,7 +110,7 @@ pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, A
         )
         .width(150)
         .height(30)
-        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle{is_fixed: app.explorer_setting_input.is_input_fixed()})))
         .on_press(AppMessage::SettingInputGotFixed(
             SettingInputFixedMessage::ExplorerSettingFixed,
         ))
@@ -119,7 +119,7 @@ pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, A
         Button::new(text("Fix Settings").horizontal_alignment(iced::alignment::Horizontal::Center).vertical_alignment(iced::alignment::Vertical::Center))
             .width(150)
             .height(30)
-            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {is_fixed: app.explorer_setting_input.is_input_fixed()})))
             .into()
     }
 }

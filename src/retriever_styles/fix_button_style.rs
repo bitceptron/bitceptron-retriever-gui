@@ -5,10 +5,12 @@ use iced::{
 use crate::RetrieverApp;
 
 use super::retriever_colors::{
-    ACTIVE_FIX_BUTTON_COLOR, INACTIVE_FIX_BUTTON_COLOR,
+    ACTIVE_FIX_BUTTON_COLOR, INACTIVE_FIX_BUTTON_COLOR, SANE_BACKGROUND_COLOR,
 };
 
-pub struct FixButtonStyle;
+pub struct FixButtonStyle {
+    pub is_fixed: bool,
+}
 
 impl button::StyleSheet for FixButtonStyle {
     type Style = <RetrieverApp as Application>::Theme;
@@ -31,7 +33,11 @@ impl button::StyleSheet for FixButtonStyle {
 
         button::Appearance {
             shadow_offset: Vector::default(),
-            background: Some(Background::Color(INACTIVE_FIX_BUTTON_COLOR)),
+            background: if self.is_fixed {
+                Some(Background::Color(SANE_BACKGROUND_COLOR))
+            } else {
+                Some(Background::Color(INACTIVE_FIX_BUTTON_COLOR))
+            },
             text_color: Color {
                 a: active.text_color.a * 0.5,
                 ..active.text_color

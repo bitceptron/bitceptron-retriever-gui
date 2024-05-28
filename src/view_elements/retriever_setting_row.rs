@@ -78,7 +78,7 @@ pub fn retriever_specific_setting_fix_button(app: &RetrieverApp) -> iced::Elemen
         )
         .width(150)
         .height(30)
-        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {is_fixed: app.retriever_specific_setting_input.is_input_fixed()})))
         .on_press(AppMessage::SettingInputGotFixed(
             SettingInputFixedMessage::RetrieverSettingFixed,
         ))
@@ -87,7 +87,7 @@ pub fn retriever_specific_setting_fix_button(app: &RetrieverApp) -> iced::Elemen
         Button::new(text("Fix Settings").horizontal_alignment(iced::alignment::Horizontal::Center).vertical_alignment(iced::alignment::Vertical::Center))
             .width(150)
             .height(30)
-            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle)))
+            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle{is_fixed: app.retriever_specific_setting_input.is_input_fixed()})))
             .into()
     }
 }

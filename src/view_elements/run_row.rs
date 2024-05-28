@@ -27,7 +27,7 @@ pub fn run_row(
         .push(section_title(app))
         .push(Space::new(Length::Fill, 5))
         .push(first_row(app))
-        .push(Space::new(Length::Fill, 10))
+        // .push(Space::new(Length::Fill, 5))
         .padding(15)
         .align_items(iced::Alignment::Start)
         .into()
@@ -59,16 +59,22 @@ pub fn first_row(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
         .push(create_retriever_block(app))
         .push(Space::new(15, 10))
+        .push(check_dump_file_block(app))
+        .push(Space::new(15, 10))
         .push(populate_utxo_block(app))
         .push(Space::new(15, 10))
         .push(search_block(app))
+        .push(Space::new(15, 10))
+        .push(get_details_block(app))
         .push(Space::new(15, 10))
         .align_items(iced::Alignment::Center)
         .into()
 }
 
 pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.retriever_setting.is_none()
+    if
+    //app.retriever_setting.is_none()
+    !app.is_retriever_built
         && app.bitcoincore_client_setting_input.is_input_fixed()
         && app.explorer_setting_input.is_input_fixed()
         && app.retriever_specific_setting_input.is_input_fixed()
@@ -94,8 +100,31 @@ pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessag
     }
 }
 
+pub fn check_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+    if app.retriever_setting.is_some() && app.is_retriever_built && !app.is_dump_file_ready {
+        Button::new(
+            text("check dump file")
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .on_press(AppMessage::PrepareDumpFile)
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
+    } else {
+        Button::new(
+            text("check dump file")
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
+    }
+}
+
 pub fn populate_utxo_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.retriever_setting.is_some() {
+    if app.is_retriever_built && app.is_dump_file_ready && !app.is_utxo_set_ready {
         Button::new(
             text("populate database")
                 .vertical_alignment(iced::alignment::Vertical::Center)
@@ -118,7 +147,7 @@ pub fn populate_utxo_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> 
 }
 
 pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.retriever_setting.is_some() {
+    if app.is_utxo_set_ready && app.finds.is_empty() {
         Button::new(
             text("search")
                 .vertical_alignment(iced::alignment::Vertical::Center)
@@ -131,6 +160,29 @@ pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     } else {
         Button::new(
             text("search")
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
+    }
+}
+
+pub fn get_details_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+    if !app.finds.is_empty() {
+        Button::new(
+            text("get details")
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .on_press(AppMessage::GetDetails)
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
+    } else {
+        Button::new(
+            text("get details")
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
