@@ -7,7 +7,10 @@ use std::{
 };
 
 use bitceptron_retriever::{
-    client::{dump_utxout_set_result::DumpTxoutSetResult, BitcoincoreRpcClient},
+    client::{
+        client_setting::ClientSetting, dump_utxout_set_result::DumpTxoutSetResult,
+        BitcoincoreRpcClient,
+    },
     covered_descriptors::CoveredDescriptors,
     error::RetrieverError,
     explorer::Explorer,
@@ -24,36 +27,28 @@ use tracing::{error, info, warn};
 
 use crate::RetrieverApp;
 
-pub fn create_retriever_setting(app: &mut RetrieverApp) -> Option<RetrieverSetting> {
-    if app.bitcoincore_client_setting_input.is_input_fixed()
-        && app.explorer_setting_input.is_input_fixed()
-        && app.retriever_specific_setting_input.is_input_fixed()
-    {
-        Some(RetrieverSetting::new(
-            Some(app.bitcoincore_client_setting_input.get_in_use_url()),
-            Some(app.bitcoincore_client_setting_input.get_in_use_rpc_port()),
-            app.bitcoincore_client_setting_input
-                .get_in_use_cookie_path(),
-            Some(app.bitcoincore_client_setting_input.get_in_use_timeout()),
-            app.explorer_setting_input.get_in_use_mnemonic(),
-            app.explorer_setting_input.get_in_use_passphrase(),
-            Some(
-                app.explorer_setting_input
-                    .get_in_use_base_derivation_paths(),
-            ),
-            Some(app.explorer_setting_input.get_in_use_exploration_path()),
-            Some(
-                app.retriever_specific_setting_input
-                    .get_in_use_selected_descriptors(),
-            ),
-            Some(app.explorer_setting_input.get_in_use_sweep()),
-            Some(app.explorer_setting_input.get_in_use_exploration_depth()),
-            Some(app.explorer_setting_input.get_in_use_network()),
-            app.retriever_specific_setting_input.get_in_use_data_dir(),
-        ))
-    } else {
-        None
-    }
+pub fn create_client_setting(app: &RetrieverApp) -> ClientSetting {
+    app.bitcoincore_client_setting_input.to_client_setting()
+}
+
+pub fn create_retriever_setting(app: &mut RetrieverApp) -> RetrieverSetting {
+    RetrieverSetting::new(
+        Some(app.client_setting.get_rpc_url().to_owned()),
+        Some(app.client_setting.get_rpc_port().to_owned()),
+        app.client_setting.get_cookie_path().to_owned(),
+        Some(app.client_setting.get_timeout_seconds().to_owned()),
+        app.explorer_setting.get_mnemonic().to_owned(),
+        app.explorer_setting.get_passphrase().to_owned(),
+        Some(app.explorer_setting.get_base_derivation_paths().to_owned()),
+        Some(app.explorer_setting.get_exploration_path().to_owned()),
+        Some(
+            Vec::from_iter(app.select_descriptors.clone())
+        ),
+        Some(app.explorer_setting.get_sweep().to_owned()),
+        Some(app.explorer_setting.get_exploration_depth().to_owned()),
+        Some(app.explorer_setting.get_network().to_owned()),
+        app.data_dir.to_owned(),
+    )
 }
 
 pub async fn check_for_dump_in_data_dir_or_create_dump_file(
@@ -260,25 +255,26 @@ pub async fn get_details_of_finds_from_bitcoincore(
     }
 }
 
-
-pub fn create_final_finds(detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>) -> Result<Vec<String>, RetrieverError> {
-        if detailed_finds.is_none() {
-            return Err(RetrieverError::DetailsHaveNotBeenFetched);
-        };
-        let mut res = vec![];
-        for (index, detail) in detailed_finds.unwrap().iter().enumerate() {
-            let info = format!(
-                "Result {}\nPath: {}\nAmount(satoshis): {}\nDescriptor: {}",
-                index + 1,
-                detail.0,
-                detail
-                    .1
-                    .total_amount
-                    .to_sat()
-                    .to_formatted_string(&Locale::en),
-                detail.2
-            );
-            res.push( info);
-        }
-        Ok(res)
+pub fn create_final_finds(
+    detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
+) -> Result<Vec<String>, RetrieverError> {
+    if detailed_finds.is_none() {
+        return Err(RetrieverError::DetailsHaveNotBeenFetched);
+    };
+    let mut res = vec![];
+    for (index, detail) in detailed_finds.unwrap().iter().enumerate() {
+        let info = format!(
+            "Result {}\nPath: {}\nAmount(satoshis): {}\nDescriptor: {}",
+            index + 1,
+            detail.0,
+            detail
+                .1
+                .total_amount
+                .to_sat()
+                .to_formatted_string(&Locale::en),
+            detail.2
+        );
+        res.push(info);
     }
+    Ok(res)
+}

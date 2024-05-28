@@ -78,6 +78,7 @@ pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessag
         && app.bitcoincore_client_setting_input.is_input_fixed()
         && app.explorer_setting_input.is_input_fixed()
         && app.retriever_specific_setting_input.is_input_fixed()
+
     {
         Button::new(
             text("create retriever")

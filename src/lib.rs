@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use app_message::{setting_input_in_gui::SettingInputInGuiMessage, AppMessage};
 use bitceptron_retriever::{
-    client::BitcoincoreRpcClient,
+    client::{client_setting::ClientSetting, BitcoincoreRpcClient},
     covered_descriptors::CoveredDescriptors,
     error::RetrieverError,
-    explorer::Explorer,
+    explorer::{explorer_setting::ExplorerSetting, Explorer},
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
     retriever::Retriever,
     setting::RetrieverSetting,
@@ -40,49 +40,33 @@ pub mod run_functions;
 pub mod status;
 pub mod view_elements;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct RetrieverApp {
+    // Inputs
     bitcoincore_client_setting_input: BitcoincoreClientInput,
     explorer_setting_input: ExplorerInput,
     retriever_specific_setting_input: RetrieverSpecificInput,
     mnemonic_content: text_editor::Content,
-    retriever_setting: Option<RetrieverSetting>,
-    client: BitcoincoreRpcClient,
-    explorer: Arc<Explorer>,
-    uspk_set: Arc<UnspentScriptPupKeysSet>,
+    select_descriptors: hashbrown::HashSet<CoveredDescriptors>,
     data_dir: String,
+    // Settings
+    client_setting: ClientSetting,
+    explorer_setting: ExplorerSetting,
+    // Errors
+    errors: Vec<Arc<RetrieverError>>,
+    // Explorer
+    explorer: Arc<Explorer>,
+    // DB
+    uspk_set: Arc<UnspentScriptPupKeysSet>,
+    // Finds
     finds: Vec<PathDescriptorPair>,
     detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
     final_finds: Vec<String>,
-    select_descriptors: hashbrown::HashSet<CoveredDescriptors>,
-    errors: Vec<Arc<RetrieverError>>,
+    // State control
+    is_app_working: bool,
     is_retriever_built: bool,
     is_dump_file_ready: bool,
     is_utxo_set_ready: bool,
-}
-
-impl Default for RetrieverApp {
-    fn default() -> Self {
-        Self {
-            bitcoincore_client_setting_input: Default::default(),
-            explorer_setting_input: Default::default(),
-            retriever_specific_setting_input: Default::default(),
-            mnemonic_content: Default::default(),
-            retriever_setting: None,
-            errors: vec![],
-            is_retriever_built: false,
-            is_dump_file_ready: false,
-            is_utxo_set_ready: false,
-            client: Default::default(),
-            explorer: Default::default(),
-            uspk_set: Default::default(),
-            data_dir: Default::default(),
-            finds: Default::default(),
-            detailed_finds: Default::default(),
-            final_finds: Default::default(),
-            select_descriptors: Default::default(),
-        }
-    }
 }
 
 impl Application for RetrieverApp {
@@ -144,30 +128,44 @@ impl Application for RetrieverApp {
             AppMessage::SettingInputGotFixed(input_fixed) => match input_fixed {
                 app_message::setting_input_fixed::SettingInputFixedMessage::BitcoincoreClientSettingFixed => {
                     let _ = self.bitcoincore_client_setting_input.gui_to_in_use();
+                    self.client_setting = self.bitcoincore_client_setting_input.to_client_setting();
                 },
                 app_message::setting_input_fixed::SettingInputFixedMessage::ExplorerSettingFixed => {
                     let _ = self.explorer_setting_input.gui_to_in_use();
+                    self.explorer_setting = self.explorer_setting_input.to_explorer_setting();
                 },
                 app_message::setting_input_fixed::SettingInputFixedMessage::RetrieverSettingFixed => {let _ = self.retriever_specific_setting_input.gui_to_in_use();},
             },
             AppMessage::CreateRetriever => {
-                self.retriever_setting = create_retriever_setting(self);
-                let setting = Arc::new(self.retriever_setting.as_ref().unwrap().clone());
-                return Command::perform(Retriever::new(setting), |result| match result {
+                let retriever_setting = create_retriever_setting(self);
+                return Command::perform(Retriever::new(retriever_setting), |result| match result {
                     Ok(retriever) => AppMessage::RetrieverCreated(retriever),
                     Err(error) => AppMessage::Error(Arc::new(error)),
                 });
             },
-            AppMessage::PrepareDumpFile => {
+            AppMessage::RetrieverCreated(retriever) => {
+                self.explorer = retriever.explorer().clone();
+                // self.select_descriptors = retriever.select_descriptors().clone();
+                self.is_retriever_built = true;
+                info!("{:?}", self.explorer);
+                info!("{:?}", self.explorer_setting_input.get_in_use_network());
+            },
+            AppMessage::CreateClientForDumpFile => return Command::perform(BitcoincoreRpcClient::new(self.client_setting), |client_result| {
+                match client_result {
+                    Ok(client) => AppMessage::ClientCreatedForDumpFileSoPrepareDumpFile(client),
+                    Err(e) => AppMessage::Error(Arc::new(e)),
+                }
+            }),
+            AppMessage::ClientCreatedForDumpFileSoPrepareDumpFile(client) => {
                 let data_dir = self.data_dir.clone();
-                let client = self.client.clone();
                 return Command::perform(check_for_dump_in_data_dir_or_create_dump_file(data_dir, client), |dump_result| {
                     match dump_result {
-                        Ok(_) => AppMessage::DumpFileDone,
+                        Ok(_) => AppMessage::DumpFilePrepared,
                         Err(e) => AppMessage::Error(Arc::new(e)),
                     }
                 });
             },
+            AppMessage::DumpFilePrepared => self.is_dump_file_ready = true,
             AppMessage::Search => {
                 let select_descriptors = self.select_descriptors.clone();
                 let uspk_set = self.uspk_set.clone();
@@ -181,21 +179,6 @@ impl Application for RetrieverApp {
                         Err(e) => AppMessage::Error(Arc::new(e)),
                     });
             },
-            AppMessage::RetrieverCreated(retriever) => {
-                self.client = retriever.client().clone();
-                self.explorer = retriever.explorer().clone();
-                self.uspk_set = Arc::new(retriever.uspk_set().clone());
-                self.data_dir = retriever.data_dir().clone();
-                self.finds = retriever.finds().lock().unwrap().clone();
-                self.detailed_finds = retriever.detailed_finds().clone();
-                self.select_descriptors = retriever.select_descriptors().clone();
-                self.is_retriever_built = true;
-                info!("{:?}", self.explorer);
-                info!("{:?}", self.explorer_setting_input.get_in_use_network());
-            },
-            AppMessage::Error(e) => self.errors.push(e),
-            AppMessage::None => {},
-            AppMessage::DumpFileDone => self.is_dump_file_ready = true,
             AppMessage::PopulateUtxoDB => {
                 let data_dir = self.data_dir.clone();
                 return Command::perform(populate_uspk_set(data_dir), |populate_result| match populate_result {
@@ -226,6 +209,9 @@ impl Application for RetrieverApp {
                 Err(e) => self.errors.push(Arc::new(e)),
                 }
             },
+            AppMessage::Error(e) => self.errors.push(e),
+            AppMessage::None => {},
+            
         }
         Command::none()
     }
