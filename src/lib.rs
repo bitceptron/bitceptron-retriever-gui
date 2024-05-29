@@ -9,7 +9,7 @@ use bitceptron_retriever::{
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
     retriever::Retriever,
     setting::RetrieverSetting,
-    uspk_set::UnspentScriptPupKeysSet,
+    uspk_set::UnspentScriptPubKeysSet,
 };
 use iced::{
     executor,
@@ -57,7 +57,7 @@ pub struct RetrieverApp {
     // Explorer
     explorer: Arc<Explorer>,
     // DB
-    uspk_set: Arc<UnspentScriptPupKeysSet>,
+    uspk_set: Arc<UnspentScriptPubKeysSet>,
     // Finds
     finds: Vec<PathDescriptorPair>,
     detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
@@ -150,12 +150,14 @@ impl Application for RetrieverApp {
                 info!("{:?}", self.explorer);
                 info!("{:?}", self.explorer_setting_input.get_in_use_network());
             },
-            AppMessage::CreateClientForDumpFile => return Command::perform(BitcoincoreRpcClient::new(self.client_setting), |client_result| {
+            AppMessage::CreateClientForDumpFileAndThenPrepare => {
+                let client_setting = self.client_setting.clone();
+                return Command::perform(BitcoincoreRpcClient::new(client_setting), |client_result| {
                 match client_result {
                     Ok(client) => AppMessage::ClientCreatedForDumpFileSoPrepareDumpFile(client),
                     Err(e) => AppMessage::Error(Arc::new(e)),
                 }
-            }),
+            })},
             AppMessage::ClientCreatedForDumpFileSoPrepareDumpFile(client) => {
                 let data_dir = self.data_dir.clone();
                 return Command::perform(check_for_dump_in_data_dir_or_create_dump_file(data_dir, client), |dump_result| {
@@ -166,6 +168,17 @@ impl Application for RetrieverApp {
                 });
             },
             AppMessage::DumpFilePrepared => self.is_dump_file_ready = true,
+            AppMessage::PopulateUtxoDB => {
+                let data_dir = self.data_dir.clone();
+                return Command::perform(populate_uspk_set(data_dir), |populate_result| match populate_result {
+                    Ok(set) => AppMessage::SetPopulated(set),
+                    Err(e) => AppMessage::Error(Arc::new(e)),
+                });
+            },
+            AppMessage::SetPopulated(set) => {
+                self.uspk_set = Arc::new(set);
+                self.is_utxo_set_ready = true;
+            },
             AppMessage::Search => {
                 let select_descriptors = self.select_descriptors.clone();
                 let uspk_set = self.uspk_set.clone();
@@ -179,22 +192,19 @@ impl Application for RetrieverApp {
                         Err(e) => AppMessage::Error(Arc::new(e)),
                     });
             },
-            AppMessage::PopulateUtxoDB => {
-                let data_dir = self.data_dir.clone();
-                return Command::perform(populate_uspk_set(data_dir), |populate_result| match populate_result {
-                    Ok(set) => AppMessage::SetPopulated(set),
-                    Err(e) => AppMessage::Error(Arc::new(e)),
-                });
-            },
-            AppMessage::SetPopulated(set) => {
-                self.uspk_set = Arc::new(set);
-                self.is_utxo_set_ready = true},
             AppMessage::SearchResultPrepared(search_result) => {
                 self.finds = search_result;
             },
-            AppMessage::GetDetails => {
+            AppMessage::CreateClientForGettingDetailsAndThenGet => {
+                let client_setting = self.client_setting.clone();
+                return Command::perform(BitcoincoreRpcClient::new(client_setting), |client_result| {
+                match client_result {
+                    Ok(client) => AppMessage::ClientCreatedForGettingDetailsSoGetDetails(client),
+                    Err(e) => AppMessage::Error(Arc::new(e)),
+                }
+            })},
+            AppMessage::ClientCreatedForGettingDetailsSoGetDetails(client) => {
                 let finds = self.finds.clone();
-                let client = self.client.clone();
                 return Command::perform(get_details_of_finds_from_bitcoincore(finds, client), |details_result| match details_result {
                     Ok(details) => AppMessage::DetailsReady(details),
                     Err(e) => AppMessage::Error(Arc::new(e)),

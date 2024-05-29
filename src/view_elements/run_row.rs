@@ -5,15 +5,8 @@ use iced::{
 };
 
 use crate::{
-    app_message::{
-        setting_input_fixed::SettingInputFixedMessage,
-        setting_input_in_gui::SettingInputInGuiMessage, AppMessage,
-    },
-    retriever_styles::{fix_button_style::FixButtonStyle, retriever_colors::BITCOIN_ORANGE_COLOR},
-    RetrieverApp,
+    app_message::AppMessage, retriever_styles::retriever_colors::BITCOIN_ORANGE_COLOR, RetrieverApp,
 };
-
-use super::common::sanity_checked_text_input;
 
 pub fn run_row(
     app: &RetrieverApp,
@@ -47,7 +40,6 @@ pub fn section_title(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
                         .style(iced::theme::Text::Color(BITCOIN_ORANGE_COLOR)),
                 )
                 .push(Space::new(Length::Fill, 10))
-                // .push(client_setting_fix_button(app))
                 .align_items(Alignment::Center),
         )
         .push(Space::new(Length::Fill, 2))
@@ -72,13 +64,10 @@ pub fn first_row(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
 }
 
 pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if
-    //app.retriever_setting.is_none()
-    !app.is_retriever_built
+    if !app.is_retriever_built
         && app.bitcoincore_client_setting_input.is_input_fixed()
         && app.explorer_setting_input.is_input_fixed()
         && app.retriever_specific_setting_input.is_input_fixed()
-
     {
         Button::new(
             text("create retriever")
@@ -102,13 +91,13 @@ pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessag
 }
 
 pub fn check_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.retriever_setting.is_some() && app.is_retriever_built && !app.is_dump_file_ready {
+    if app.is_retriever_built && !app.is_dump_file_ready {
         Button::new(
             text("check dump file")
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
-        .on_press(AppMessage::PrepareDumpFile)
+        .on_press(AppMessage::CreateClientForDumpFileAndThenPrepare)
         .height(30)
         .width(Length::FillPortion(1))
         .into()
@@ -177,7 +166,7 @@ pub fn get_details_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
-        .on_press(AppMessage::GetDetails)
+        .on_press(AppMessage::CreateClientForGettingDetailsAndThenGet)
         .height(30)
         .width(Length::FillPortion(1))
         .into()

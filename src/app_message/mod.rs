@@ -5,7 +5,7 @@ use bitceptron_retriever::{
     error::RetrieverError,
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
     retriever::Retriever,
-    uspk_set::UnspentScriptPupKeysSet,
+    uspk_set::UnspentScriptPubKeysSet,
 };
 
 use self::{
@@ -20,16 +20,17 @@ pub enum AppMessage {
     SettingInputInGuiChanged(SettingInputInGuiMessage),
     SettingInputGotFixed(SettingInputFixedMessage),
     CreateRetriever,
-    CreateClientForDumpFile,
+    CreateClientForDumpFileAndThenPrepare,
     ClientCreatedForDumpFileSoPrepareDumpFile(BitcoincoreRpcClient),
     DumpFilePrepared,
     PopulateUtxoDB,
     Search,
     SearchResultPrepared(Vec<PathDescriptorPair>),
     RetrieverCreated(Retriever),
-    SetPopulated(UnspentScriptPupKeysSet),
-    Error(Arc<RetrieverError>),
-    GetDetails,
+    SetPopulated(UnspentScriptPubKeysSet),
+    CreateClientForGettingDetailsAndThenGet,
+    ClientCreatedForGettingDetailsSoGetDetails(BitcoincoreRpcClient),
     DetailsReady(Option<Vec<PathScanResultDescriptorTrio>>),
+    Error(Arc<RetrieverError>),
     None,
 }

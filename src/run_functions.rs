@@ -16,7 +16,7 @@ use bitceptron_retriever::{
     explorer::Explorer,
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
     setting::RetrieverSetting,
-    uspk_set::{UnspentScriptPupKeysSet, UspkSetStatus},
+    uspk_set::{UnspentScriptPubKeysSet, UspkSetStatus},
 };
 use bitcoin::{bip32::DerivationPath, key::Secp256k1};
 use itertools::Itertools;
@@ -78,8 +78,8 @@ pub async fn check_for_dump_in_data_dir_or_create_dump_file(
 
 pub async fn populate_uspk_set(
     data_dir: String,
-) -> Result<UnspentScriptPupKeysSet, RetrieverError> {
-    let mut uspk_set = UnspentScriptPupKeysSet::new();
+) -> Result<UnspentScriptPubKeysSet, RetrieverError> {
+    let mut uspk_set = UnspentScriptPubKeysSet::new();
     if uspk_set.get_status() == UspkSetStatus::Empty {
         info!("Searching for the dump file to populate the Unspent ScriptPubKey set.");
         let dump_file_path_str = format!("{}/utxo_dump.dat", data_dir);
@@ -143,7 +143,7 @@ pub async fn create_derivation_path_stream(
 
 pub async fn process_derivation_path_stream(
     select_descriptors: hashbrown::HashSet<CoveredDescriptors>,
-    uspk_set: Arc<UnspentScriptPupKeysSet>,
+    uspk_set: Arc<UnspentScriptPubKeysSet>,
     explorer: Arc<Explorer>,
     receiver: &mut mpsc::Receiver<DerivationPath>,
 ) -> Result<Vec<PathDescriptorPair>, RetrieverError> {
@@ -224,7 +224,7 @@ pub async fn process_derivation_path_stream(
 
 pub async fn search_the_uspk_set(
     select_descriptors: hashbrown::HashSet<CoveredDescriptors>,
-    uspk_set: Arc<UnspentScriptPupKeysSet>,
+    uspk_set: Arc<UnspentScriptPubKeysSet>,
     explorer: Arc<Explorer>,
 ) -> Result<Vec<PathDescriptorPair>, RetrieverError> {
     let (tx, mut rx) = mpsc::channel(1024);
