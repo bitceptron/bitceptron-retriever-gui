@@ -47,18 +47,33 @@ To use the bitceptron-retriever-gui, you must follow these steps:
   
   If use presets is selected, it will use the built-in list of all known base paths for bitcoin wallets which is based on the data provided by <https://walletsrecovery.org>
   
-8. Choose descriptors you want to be included in search and enter path of a temp directory of your choosing. Dump file will be created or searched for in this directory.
+8.About exploration path:
+   This is the exploration path in which the program searches. Exploration path consists of steps separated by a "/". Step semantics are as follows:
+
+   - For any A, a member of u32: A means the specific child number A of the parent.
+   - For any A and B, members of u32 with A <= B: A..B means all children number A (inclusive) to number B (inclusive) of the parent.
+   - For and A, a member of u32: ..A means all the children from number 0 (inclusive) to number B (inclusive) of the parents.
+   - " * " means all children from (inclusive) 0 to exploration_depth (inclusive).
+   - suffixes " ' " and " h " mean all hardened children. Not using these suffixes makes all children in that step normal.
+   - Suffix " a " means exploring both hardened and normal children at that step.
+   
+   Some valid examples(lose the spaces):
+   
+   - " ..100' / 50..75a / * / *"
+   - " 42a / 83..120a / 68h / *a / 54h"
+   - " *' / *h / *a "
+9.  Choose descriptors you want to be included in search and enter path of a temp directory of your choosing. Dump file will be created or searched for in this directory.
    <img width="1136" alt="Screenshot 1403-03-10 at 12 05 41" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/c04ef3ce-615c-4202-9ff9-ee27c4c39e59">
-9. Now fix settings.
+10. Now fix settings.
   <img width="1136" alt="Screenshot 1403-03-10 at 12 06 41" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/76815de4-51ed-4fb9-96fc-6a21035d6a90">
-10. You see two buttons activated now. If you want tp fetch a new utxo dump file from your bitcoincore, press `new dump file`. If you want to use a dump file already existing in your temp folder, or if nothing exists, create a new one, press `use/create dump file`. If you are on the main net, dumping the utxo set will take a while. The file is about 12GB as of block 845,771.
-11. After sorting out the dump file, you see `populate database` activated. It will create an in-memory database of all ScriptPubkeys in the utxo set. Takes about 15 mins as of block 845,771. You can stop populating whenever you want.
+11. You see two buttons activated now. If you want tp fetch a new utxo dump file from your bitcoincore, press `new dump file`. If you want to use a dump file already existing in your temp folder, or if nothing exists, create a new one, press `use/create dump file`. If you are on the main net, dumping the utxo set will take a while. The file is about 12GB as of block 845,771.
+12. After sorting out the dump file, you see `populate database` activated. It will create an in-memory database of all ScriptPubkeys in the utxo set. Takes about 15 mins as of block 845,771. You can stop populating whenever you want.
     <img width="1136" alt="Screenshot 1403-03-10 at 12 14 16" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/f4cedc59-0bbe-46dd-afe0-cc33de0f63e1">
-12. After that, `new search` activates and you can perform any search you want. Just make sure the exploration settings are fixed. You can stop search whenever you want.
+13. After that, `new search` activates and you can perform any search you want. Just make sure the exploration settings are fixed. You can stop search whenever you want.
     <img width="1136" alt="Screenshot 1403-03-10 at 12 16 37" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/95aa47af-d835-42e4-a4b8-1ff2551b7e11">
-13. By pressing `new search` if anything is found, you'll be informed by the `Results` window.
+14. By pressing `new search` if anything is found, you'll be informed by the `Results` window.
     <img width="1136" alt="Screenshot 1403-03-10 at 12 19 17" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/756d4502-10ac-4c77-93e2-5cc3620988b7">
-14. To get the details, we need to connect to the bitcoincore. So press `get details` for more. After a while you'll see more details in the `Results` window.
+15. To get the details, we need to connect to the bitcoincore. So press `get details` for more. After a while you'll see more details in the `Results` window.
     <img width="1136" alt="Screenshot 1403-03-10 at 12 22 31" src="https://github.com/bitceptron/bitceptron-retriever-gui/assets/139527025/53b00769-cf21-47ad-b5be-09d63406923a">
 
 ## Improvements
@@ -67,7 +82,3 @@ This is a POC thing as of now. Can be improved in error handeling, logging and a
 ## Epilogue
 
 Happy rusting plebs.
-
-
-
-
