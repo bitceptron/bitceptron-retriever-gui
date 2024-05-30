@@ -186,7 +186,7 @@ pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         && !app.is_populating_in_progress
     {
         Button::new(
-            text("search").font(Font {
+            text("new search").font(Font {
                             weight: iced::font::Weight::Bold,
                             ..Default::default()
                         })
@@ -213,7 +213,7 @@ pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         .into()
     } else {
         Button::new(
-            text("search").font(Font {
+            text("new search").font(Font {
                             weight: iced::font::Weight::Bold,
                             ..Default::default()
                         })

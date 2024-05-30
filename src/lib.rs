@@ -23,8 +23,7 @@ use run_functions::{
 use tokio_util::sync::CancellationToken;
 use tracing::error;
 use view_elements::{
-    bitcoincore_client_setting_row, exploration_setting_row, results_row::results_row,
-    retriever_setting_row, run_row::run_row,
+    bitcoincore_client_setting_row, exploration_setting_row, final_finds::FinalFinds, results_row::results_row, retriever_setting_row, run_row::run_row
 };
 
 pub mod app_message;
@@ -56,7 +55,7 @@ pub struct RetrieverApp {
     // Finds
     finds: Vec<PathDescriptorPair>,
     detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
-    final_finds: Vec<String>,
+    final_finds: Vec<FinalFinds>,
     // State control
     is_dump_file_ready: bool,
     is_populating_in_progress: bool,
@@ -201,6 +200,10 @@ impl Application for RetrieverApp {
                 let select_descriptors = self.retriever_specific_setting_input.get_in_use_selected_descriptors().clone();
                 let uspk_set = self.uspk_set.clone();
                 let cancellation_token = self.search_cancellation_token.clone();
+                self.finds = Default::default();
+                self.detailed_finds = Default::default();
+                self.final_finds = Default::default();
+
                 match Explorer::new(self.explorer_setting.clone()) {
                     Ok(explorer) => {
                         self.explorer = Arc::new(explorer); 

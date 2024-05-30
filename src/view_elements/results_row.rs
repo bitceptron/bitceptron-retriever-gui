@@ -52,8 +52,25 @@ pub fn results_title_block(_app: &RetrieverApp) -> iced::Element<'_, AppMessage>
         .into()
 }
 
+// pub fn results_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+//     Container::new(Scrollable::new(Text::new(format!("{:?}", app.final_finds))).width(Length::Fill))
+//         .width(Length::Fill)
+//         .height(Length::FillPortion(2))
+//         .align_x(iced::alignment::Horizontal::Left)
+//         .align_y(iced::alignment::Vertical::Top)
+//         .style(iced::theme::Container::Custom(Box::new(OutputStyles)))
+//         .into()
+// }
+
 pub fn results_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    Container::new(Scrollable::new(Text::new(format!("{:?}", app.final_finds))).width(Length::Fill))
+    let text = if app.finds.is_empty() {
+        "None".to_string()
+    } else if !app.finds.is_empty() && app.final_finds.is_empty() {
+        format!("{} ScriptPubkeys derived from you mnemonic was found. To see the details, press `get details` button.", app.finds.len())
+    } else {
+        format!("{:?}", app.final_finds)
+    };
+    Container::new(Scrollable::new(Text::new(text)).width(Length::Fill))
         .width(Length::Fill)
         .height(Length::FillPortion(2))
         .align_x(iced::alignment::Horizontal::Left)
@@ -76,7 +93,12 @@ pub fn errors_title_block(_app: &RetrieverApp) -> iced::Element<'_, AppMessage> 
 }
 
 pub fn errors_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    Container::new(Scrollable::new(Text::new(format!("{:#?}", app.errors))).width(Length::Fill))
+    let text = if app.errors.is_empty() {
+        "None".to_string()
+    } else {
+        format!("{:#?}", app.errors)
+    };
+    Container::new(Scrollable::new(Text::new(text)).width(Length::Fill))
         .width(Length::Fill)
         .height(Length::FillPortion(1))
         .align_x(iced::alignment::Horizontal::Left)

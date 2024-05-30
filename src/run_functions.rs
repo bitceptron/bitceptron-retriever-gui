@@ -17,7 +17,7 @@ use tokio::{join, sync::mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
 
-use crate::RetrieverApp;
+use crate::{view_elements::final_finds::FinalFinds, RetrieverApp};
 
 pub fn create_client_setting(app: &RetrieverApp) -> ClientSetting {
     app.bitcoincore_client_setting_input.to_client_setting()
@@ -300,23 +300,13 @@ pub async fn get_details_of_finds_from_bitcoincore(
 
 pub fn create_final_finds(
     detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
-) -> Result<Vec<String>, RetrieverError> {
+) -> Result<Vec<FinalFinds>, RetrieverError> {
     if detailed_finds.is_none() {
         return Err(RetrieverError::DetailsHaveNotBeenFetched);
     };
     let mut res = vec![];
     for (index, detail) in detailed_finds.unwrap().iter().enumerate() {
-        let info = format!(
-            "Result {}\nPath: {}\nAmount(satoshis): {}\nDescriptor: {}",
-            index + 1,
-            detail.0,
-            detail
-                .1
-                .total_amount
-                .to_sat()
-                .to_formatted_string(&Locale::en),
-            detail.2
-        );
+        let info = FinalFinds::new((index + 1) as u64, detail);
         res.push(info);
     }
     Ok(res)
