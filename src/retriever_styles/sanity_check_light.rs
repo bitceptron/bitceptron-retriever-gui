@@ -14,7 +14,7 @@ pub struct SanityCheckLight {
 impl button::StyleSheet for SanityCheckLight {
     type Style = <RetrieverApp as Application>::Theme;
 
-    fn active(&self, style: &Self::Style) -> button::Appearance {
+    fn active(&self, _style: &Self::Style) -> button::Appearance {
         button::Appearance {
             shadow_offset: Vector::new(0., 0.),
             background: if self.is_fixed {

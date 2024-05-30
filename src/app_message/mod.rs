@@ -1,10 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bitceptron_retriever::{
     client::BitcoincoreRpcClient,
     error::RetrieverError,
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
-    retriever::Retriever,
     uspk_set::UnspentScriptPubKeysSet,
 };
 
@@ -19,14 +18,18 @@ pub mod setting_input_in_gui;
 pub enum AppMessage {
     SettingInputInGuiChanged(SettingInputInGuiMessage),
     SettingInputGotFixed(SettingInputFixedMessage),
-    CreateRetriever,
+    // CreateExplorer,
     CreateClientForDumpFileAndThenPrepare,
     ClientCreatedForDumpFileSoPrepareDumpFile(BitcoincoreRpcClient),
+    CreateClientForNewDumpFileAndThenCreate,
+    ClientCreatedForNewFileSoCreateDumpFile(BitcoincoreRpcClient),
     DumpFilePrepared,
     PopulateUtxoDB,
+    StopPopulatingUtxoDB,
     Search,
+    StopSearch,
     SearchResultPrepared(Vec<PathDescriptorPair>),
-    RetrieverCreated(Retriever),
+    // RetrieverCreated(Retriever),
     SetPopulated(UnspentScriptPubKeysSet),
     CreateClientForGettingDetailsAndThenGet,
     ClientCreatedForGettingDetailsSoGetDetails(BitcoincoreRpcClient),

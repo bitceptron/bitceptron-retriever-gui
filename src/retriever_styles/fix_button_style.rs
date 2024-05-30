@@ -15,7 +15,7 @@ pub struct FixButtonStyle {
 impl button::StyleSheet for FixButtonStyle {
     type Style = <RetrieverApp as Application>::Theme;
 
-    fn active(&self, style: &Self::Style) -> button::Appearance {
+    fn active(&self, _style: &Self::Style) -> button::Appearance {
         button::Appearance {
             shadow_offset: Vector::new(2., 2.),
             background: Some(Background::Color(ACTIVE_FIX_BUTTON_COLOR)),

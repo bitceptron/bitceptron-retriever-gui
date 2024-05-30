@@ -3,12 +3,9 @@ use std::sync::Arc;
 use app_message::{setting_input_in_gui::SettingInputInGuiMessage, AppMessage};
 use bitceptron_retriever::{
     client::{client_setting::ClientSetting, BitcoincoreRpcClient},
-    covered_descriptors::CoveredDescriptors,
     error::RetrieverError,
     explorer::{explorer_setting::ExplorerSetting, Explorer},
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
-    retriever::Retriever,
-    setting::RetrieverSetting,
     uspk_set::UnspentScriptPubKeysSet,
 };
 use iced::{
@@ -21,10 +18,10 @@ use inputs::{
     retriever_specific::RetrieverSpecificInput,
 };
 use run_functions::{
-    check_for_dump_in_data_dir_or_create_dump_file, create_final_finds, create_retriever_setting,
-    get_details_of_finds_from_bitcoincore, populate_uspk_set, search_the_uspk_set,
+    check_for_dump_in_data_dir_or_create_dump_file, create_final_finds, create_new_dump_in_data_dir, get_details_of_finds_from_bitcoincore, populate_uspk_set, search_the_uspk_set
 };
-use tracing_log::log::info;
+use tokio_util::sync::CancellationToken;
+use tracing::error;
 use view_elements::{
     bitcoincore_client_setting_row, exploration_setting_row, results_row::results_row,
     retriever_setting_row, run_row::run_row,
@@ -47,8 +44,6 @@ pub struct RetrieverApp {
     explorer_setting_input: ExplorerInput,
     retriever_specific_setting_input: RetrieverSpecificInput,
     mnemonic_content: text_editor::Content,
-    select_descriptors: hashbrown::HashSet<CoveredDescriptors>,
-    data_dir: String,
     // Settings
     client_setting: ClientSetting,
     explorer_setting: ExplorerSetting,
@@ -63,10 +58,12 @@ pub struct RetrieverApp {
     detailed_finds: Option<Vec<PathScanResultDescriptorTrio>>,
     final_finds: Vec<String>,
     // State control
-    is_app_working: bool,
-    is_retriever_built: bool,
     is_dump_file_ready: bool,
-    is_utxo_set_ready: bool,
+    is_populating_in_progress: bool,
+    is_search_in_progress: bool,
+    // Cancellation tokens,
+    populating_cancellation_token: CancellationToken,
+    search_cancellation_token: CancellationToken,
 }
 
 impl Application for RetrieverApp {
@@ -134,21 +131,38 @@ impl Application for RetrieverApp {
                     let _ = self.explorer_setting_input.gui_to_in_use();
                     self.explorer_setting = self.explorer_setting_input.to_explorer_setting();
                 },
-                app_message::setting_input_fixed::SettingInputFixedMessage::RetrieverSettingFixed => {let _ = self.retriever_specific_setting_input.gui_to_in_use();},
+                app_message::setting_input_fixed::SettingInputFixedMessage::RetrieverSettingFixed => {
+                    let _ = self.retriever_specific_setting_input.gui_to_in_use();
+                },
             },
-            AppMessage::CreateRetriever => {
-                let retriever_setting = create_retriever_setting(self);
-                return Command::perform(Retriever::new(retriever_setting), |result| match result {
-                    Ok(retriever) => AppMessage::RetrieverCreated(retriever),
-                    Err(error) => AppMessage::Error(Arc::new(error)),
+            // AppMessage::CreateExplorer => {
+            //     match Explorer::new(self.explorer_setting.clone()) {
+            //         Ok(explorer) => {
+            //             self.explorer = Arc::new(explorer); 
+            //             },
+            //         Err(e) => self.errors.push(Arc::new(e)),
+            //     }
+            // },
+            // AppMessage::RetrieverCreated(retriever) => {
+            //     self.explorer = retriever.explorer().clone();
+            //     self.is_retriever_built = true;
+            // },
+            AppMessage::CreateClientForNewDumpFileAndThenCreate => {
+                let client_setting = self.client_setting.clone();
+                return Command::perform(BitcoincoreRpcClient::new(client_setting), |client_result| {
+                match client_result {
+                    Ok(client) => AppMessage::ClientCreatedForNewFileSoCreateDumpFile(client),
+                    Err(e) => AppMessage::Error(Arc::new(e)),
+                }
+            })},
+            AppMessage::ClientCreatedForNewFileSoCreateDumpFile(client) => {
+                let data_dir = self.retriever_specific_setting_input.get_in_use_data_dir().clone();
+                return Command::perform(create_new_dump_in_data_dir(data_dir, client), |dump_result| {
+                    match dump_result {
+                        Ok(_) => AppMessage::DumpFilePrepared,
+                        Err(e) => AppMessage::Error(Arc::new(e)),
+                    }
                 });
-            },
-            AppMessage::RetrieverCreated(retriever) => {
-                self.explorer = retriever.explorer().clone();
-                // self.select_descriptors = retriever.select_descriptors().clone();
-                self.is_retriever_built = true;
-                info!("{:?}", self.explorer);
-                info!("{:?}", self.explorer_setting_input.get_in_use_network());
             },
             AppMessage::CreateClientForDumpFileAndThenPrepare => {
                 let client_setting = self.client_setting.clone();
@@ -159,7 +173,7 @@ impl Application for RetrieverApp {
                 }
             })},
             AppMessage::ClientCreatedForDumpFileSoPrepareDumpFile(client) => {
-                let data_dir = self.data_dir.clone();
+                let data_dir = self.retriever_specific_setting_input.get_in_use_data_dir().clone();
                 return Command::perform(check_for_dump_in_data_dir_or_create_dump_file(data_dir, client), |dump_result| {
                     match dump_result {
                         Ok(_) => AppMessage::DumpFilePrepared,
@@ -169,31 +183,42 @@ impl Application for RetrieverApp {
             },
             AppMessage::DumpFilePrepared => self.is_dump_file_ready = true,
             AppMessage::PopulateUtxoDB => {
-                let data_dir = self.data_dir.clone();
-                return Command::perform(populate_uspk_set(data_dir), |populate_result| match populate_result {
+                let data_dir = self.retriever_specific_setting_input.get_in_use_data_dir().clone();
+                let cancellation_token = self.populating_cancellation_token.clone();
+                self.is_populating_in_progress = true;
+                return Command::perform(populate_uspk_set(data_dir, cancellation_token), |populate_result| match populate_result {
                     Ok(set) => AppMessage::SetPopulated(set),
-                    Err(e) => AppMessage::Error(Arc::new(e)),
+                    Err(e) => {
+                        AppMessage::Error(Arc::new(e))
+                    },
                 });
             },
             AppMessage::SetPopulated(set) => {
                 self.uspk_set = Arc::new(set);
-                self.is_utxo_set_ready = true;
+                self.is_populating_in_progress = false;
             },
             AppMessage::Search => {
-                let select_descriptors = self.select_descriptors.clone();
+                let select_descriptors = self.retriever_specific_setting_input.get_in_use_selected_descriptors().clone();
                 let uspk_set = self.uspk_set.clone();
+                let cancellation_token = self.search_cancellation_token.clone();
+                match Explorer::new(self.explorer_setting.clone()) {
+                    Ok(explorer) => {
+                        self.explorer = Arc::new(explorer); 
+                        },
+                    Err(e) => self.errors.push(Arc::new(e)),
+                }
                 let explorer = self.explorer.clone();
+                self.is_search_in_progress = true;
                 return Command::perform(search_the_uspk_set(
                     select_descriptors,
                     uspk_set,
                     explorer,
-                    ), |search_result| match search_result {
-                        Ok(result) => AppMessage::SearchResultPrepared(result),
-                        Err(e) => AppMessage::Error(Arc::new(e)),
-                    });
+                    cancellation_token,
+                    ), |search_result| AppMessage::SearchResultPrepared(search_result),);
             },
             AppMessage::SearchResultPrepared(search_result) => {
                 self.finds = search_result;
+                self.is_search_in_progress = false;
             },
             AppMessage::CreateClientForGettingDetailsAndThenGet => {
                 let client_setting = self.client_setting.clone();
@@ -219,9 +244,26 @@ impl Application for RetrieverApp {
                 Err(e) => self.errors.push(Arc::new(e)),
                 }
             },
-            AppMessage::Error(e) => self.errors.push(e),
+            AppMessage::Error(e) => {
+                self.errors.push(e.clone()); 
+                error!("{:?}", e);
+                match e.as_ref() {
+                    RetrieverError::NoDumpFileInDataDir => self.is_populating_in_progress = false,
+                    _ => self.is_populating_in_progress = false,
+                }
+            },
             AppMessage::None => {},
-            
+            AppMessage::StopPopulatingUtxoDB => {
+                self.populating_cancellation_token.cancel();
+                self.is_populating_in_progress = false;
+                self.populating_cancellation_token = CancellationToken::new();
+
+            },
+            AppMessage::StopSearch => {
+                self.search_cancellation_token.cancel();
+                self.is_search_in_progress = false;
+                self.search_cancellation_token = CancellationToken::new();
+            },
         }
         Command::none()
     }

@@ -1,11 +1,15 @@
 use iced::{
     advanced::widget::Text,
-    widget::{text, Button, Column, Row, Rule, Space},
+    widget::{ text, Button, Column, Row, Rule, Space},
     Alignment, Font, Length,
 };
 
 use crate::{
-    app_message::AppMessage, retriever_styles::retriever_colors::BITCOIN_ORANGE_COLOR, RetrieverApp,
+    app_message::AppMessage,
+    retriever_styles::{
+        retriever_colors::BITCOIN_ORANGE_COLOR, stop_button_style::StopButtonStyle,
+    },
+    RetrieverApp,
 };
 
 pub fn run_row(
@@ -20,13 +24,12 @@ pub fn run_row(
         .push(section_title(app))
         .push(Space::new(Length::Fill, 5))
         .push(first_row(app))
-        // .push(Space::new(Length::Fill, 5))
         .padding(15)
         .align_items(iced::Alignment::Start)
         .into()
 }
 
-pub fn section_title(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+pub fn section_title(_app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Column::new()
         .push(
             Row::new()
@@ -49,9 +52,9 @@ pub fn section_title(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
 
 pub fn first_row(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(create_retriever_block(app))
+        .push(create_new_dump_file_block(app))
         .push(Space::new(15, 10))
-        .push(check_dump_file_block(app))
+        .push(create_or_use_dump_file_block(app))
         .push(Space::new(15, 10))
         .push(populate_utxo_block(app))
         .push(Space::new(15, 10))
@@ -63,24 +66,30 @@ pub fn first_row(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         .into()
 }
 
-pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if !app.is_retriever_built
-        && app.bitcoincore_client_setting_input.is_input_fixed()
-        && app.explorer_setting_input.is_input_fixed()
+pub fn create_new_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+    if app.bitcoincore_client_setting_input.is_input_fixed()
         && app.retriever_specific_setting_input.is_input_fixed()
     {
         Button::new(
-            text("create retriever")
+            text("new dump file")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
-        .on_press(AppMessage::CreateRetriever)
+        .on_press(AppMessage::CreateClientForNewDumpFileAndThenCreate)
         .height(30)
         .width(Length::FillPortion(1))
         .into()
     } else {
         Button::new(
-            text("create retriever")
+            text("new dump file")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -90,10 +99,16 @@ pub fn create_retriever_block(app: &RetrieverApp) -> iced::Element<'_, AppMessag
     }
 }
 
-pub fn check_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.is_retriever_built && !app.is_dump_file_ready {
+pub fn create_or_use_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
+    if app.bitcoincore_client_setting_input.is_input_fixed()
+        && app.retriever_specific_setting_input.is_input_fixed()
+    {
         Button::new(
-            text("check dump file")
+            text("use/create dump file")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -103,7 +118,11 @@ pub fn check_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage
         .into()
     } else {
         Button::new(
-            text("check dump file")
+            text("use/create dump file")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -114,9 +133,13 @@ pub fn check_dump_file_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage
 }
 
 pub fn populate_utxo_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.is_retriever_built && app.is_dump_file_ready && !app.is_utxo_set_ready {
+    if app.is_dump_file_ready && !app.is_populating_in_progress && !app.is_search_in_progress {
         Button::new(
             text("populate database")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -124,9 +147,28 @@ pub fn populate_utxo_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> 
         .height(30)
         .width(Length::FillPortion(1))
         .into()
+    } else if app.is_populating_in_progress {
+        Button::new(
+            text("stop populating")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .on_press(AppMessage::StopPopulatingUtxoDB)
+        .style(iced::theme::Button::Custom(Box::new(StopButtonStyle)))
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
     } else {
         Button::new(
             text("populate database")
+                .font(Font {
+                    weight: iced::font::Weight::Bold,
+                    ..Default::default()
+                })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -137,9 +179,17 @@ pub fn populate_utxo_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> 
 }
 
 pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if app.is_utxo_set_ready && app.finds.is_empty() {
+    if !app.uspk_set.is_empty()
+        && app.explorer_setting_input.is_input_fixed()
+        && app.retriever_specific_setting_input.is_input_fixed()
+        && !app.is_search_in_progress
+        && !app.is_populating_in_progress
+    {
         Button::new(
-            text("search")
+            text("search").font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -147,9 +197,26 @@ pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         .height(30)
         .width(Length::FillPortion(1))
         .into()
+    } else if app.is_search_in_progress {
+        Button::new(
+            text("stop search").font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
+                .vertical_alignment(iced::alignment::Vertical::Center)
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+        )
+        .on_press(AppMessage::StopSearch)
+        .style(iced::theme::Button::Custom(Box::new(StopButtonStyle)))
+        .height(30)
+        .width(Length::FillPortion(1))
+        .into()
     } else {
         Button::new(
-            text("search")
+            text("search").font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -160,9 +227,12 @@ pub fn search_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
 }
 
 pub fn get_details_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
-    if !app.finds.is_empty() {
+    if !app.finds.is_empty() && app.bitcoincore_client_setting_input.is_input_fixed() {
         Button::new(
-            text("get details")
+            text("get details").font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )
@@ -172,7 +242,10 @@ pub fn get_details_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
         .into()
     } else {
         Button::new(
-            text("get details")
+            text("get details").font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
                 .vertical_alignment(iced::alignment::Vertical::Center)
                 .horizontal_alignment(iced::alignment::Horizontal::Center),
         )

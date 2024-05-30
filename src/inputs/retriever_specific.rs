@@ -30,24 +30,24 @@ impl RetrieverSpecificInput {
         let in_use = match self.is_gui_input_sane() {
             true => RetrieverSpecificSettingInUse {
                 in_use_selected_descriptors: {
-                    let mut res = vec![];
+                    let mut res = hashbrown::HashSet::new();
                     if self.get_gui_p2pk() {
-                        res.push(CoveredDescriptors::P2pk)
+                        res.insert(CoveredDescriptors::P2pk);
                     };
                     if self.get_gui_p2pkh() {
-                        res.push(CoveredDescriptors::P2pkh)
+                        res.insert(CoveredDescriptors::P2pkh);
                     };
 
                     if self.get_gui_p2wpkh() {
-                        res.push(CoveredDescriptors::P2wpkh)
+                        res.insert(CoveredDescriptors::P2wpkh);
                     };
 
                     if self.get_gui_p2shwpkh() {
-                        res.push(CoveredDescriptors::P2shwpkh)
+                        res.insert(CoveredDescriptors::P2shwpkh);
                     };
 
                     if self.get_gui_p2tr() {
-                        res.push(CoveredDescriptors::P2tr)
+                        res.insert(CoveredDescriptors::P2tr);
                     };
                     res
                 },
@@ -152,10 +152,10 @@ impl RetrieverSpecificInput {
         }
     }
 
-    pub fn get_in_use_selected_descriptors(&self) -> Vec<CoveredDescriptors> {
+    pub fn get_in_use_selected_descriptors(&self) -> hashbrown::HashSet<CoveredDescriptors> {
         match &self.in_use {
             Some(in_use) => in_use.in_use_selected_descriptors.clone(),
-            None => vec![],
+            None => hashbrown::HashSet::new(),
         }
     }
 
@@ -250,6 +250,6 @@ impl GuiInput for DataDirGuiData {
 
 #[derive(Debug)]
 pub struct RetrieverSpecificSettingInUse {
-    in_use_selected_descriptors: Vec<CoveredDescriptors>,
+    in_use_selected_descriptors: hashbrown::HashSet<CoveredDescriptors>,
     in_use_data_dir: String,
 }

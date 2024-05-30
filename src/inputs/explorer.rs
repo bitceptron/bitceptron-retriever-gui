@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use bitceptron_retriever::{
-    covered_descriptors::CoveredDescriptors,
     data::defaults::{DEFAULT_EXPLORATION_DEPTH, DEFAULT_EXPLORATION_PATH},
     explorer::{exploration_path::ExplorationPath, explorer_setting::ExplorerSetting},
 };
@@ -46,29 +45,6 @@ impl ExplorerInput {
                 in_use_sweep: self.get_gui_sweep(),
                 in_use_exploration_depth: self.get_gui_exploration_depth().parse::<u32>().unwrap(),
                 in_use_network: self.get_gui_network(),
-                // in_use_selected_descriptors: {
-                //     let mut res = vec![];
-                //     if self.get_gui_p2pk() {
-                //         res.push(CoveredDescriptors::P2pk)
-                //     };
-                //     if self.get_gui_p2pkh() {
-                //         res.push(CoveredDescriptors::P2pkh)
-                //     };
-
-                //     if self.get_gui_p2wpkh() {
-                //         res.push(CoveredDescriptors::P2wpkh)
-                //     };
-
-                //     if self.get_gui_p2shwpkh() {
-                //         res.push(CoveredDescriptors::P2shwpkh)
-                //     };
-
-                //     if self.get_gui_p2tr() {
-                //         res.push(CoveredDescriptors::P2tr)
-                //     };
-                //     res
-                // },
-                // in_use_data_dir: self.get_gui_data_dir(),
                 in_use_mnemonic: self.get_gui_mnemonic(),
                 in_use_passphrase: self.get_gui_passphrase(),
             },
@@ -121,30 +97,6 @@ impl ExplorerInput {
         self.gui_input.gui_network = NetworkGuiData::new(network)
     }
 
-    // pub fn set_p2pk_inclusion_from_gui_input(&mut self, p2pk_inclusion: bool) {
-    //     self.gui_input.gui_p2pk = p2pk_inclusion
-    // }
-
-    // pub fn set_p2pkh_inclusion_from_gui_input(&mut self, p2pkh_inclusion: bool) {
-    //     self.gui_input.gui_p2pkh = p2pkh_inclusion
-    // }
-
-    // pub fn set_p2wpkh_inclusion_from_gui_input(&mut self, p2wpkh_inclusion: bool) {
-    //     self.gui_input.gui_p2wpkh = p2wpkh_inclusion
-    // }
-
-    // pub fn set_p2shwpkh_inclusion_from_gui_input(&mut self, p2shwpkh_inclusion: bool) {
-    //     self.gui_input.gui_p2shwpkh = p2shwpkh_inclusion
-    // }
-
-    // pub fn set_p2tr_inclusion_from_gui_input(&mut self, p2tr_inclusion: bool) {
-    //     self.gui_input.gui_p2tr = p2tr_inclusion
-    // }
-
-    // pub fn set_data_dir_from_gui_input(&mut self, data_dir: String) {
-    //     self.gui_input.gui_data_dir = DataDirGuiData::new(data_dir)
-    // }
-
     pub fn update_mnemonic_from_gui_input(&mut self, action: text_editor::Action) {
         self.gui_input.gui_mnemonic.update(action)
     }
@@ -176,30 +128,6 @@ impl ExplorerInput {
     pub fn get_gui_network(&self) -> bitcoin::Network {
         self.gui_input.gui_network.get_value()
     }
-
-    // pub fn get_gui_p2pk(&self) -> bool {
-    //     self.gui_input.gui_p2pk
-    // }
-
-    // pub fn get_gui_p2pkh(&self) -> bool {
-    //     self.gui_input.gui_p2pkh
-    // }
-
-    // pub fn get_gui_p2wpkh(&self) -> bool {
-    //     self.gui_input.gui_p2wpkh
-    // }
-
-    // pub fn get_gui_p2shwpkh(&self) -> bool {
-    //     self.gui_input.gui_p2shwpkh
-    // }
-
-    // pub fn get_gui_p2tr(&self) -> bool {
-    //     self.gui_input.gui_p2tr
-    // }
-
-    // pub fn get_gui_data_dir(&self) -> String {
-    //     self.gui_input.gui_data_dir.get_value()
-    // }
 
     pub fn get_gui_mnemonic(&self) -> String {
         self.gui_input.gui_mnemonic.get_value()
@@ -251,58 +179,6 @@ impl ExplorerInput {
         }
     }
 
-    // pub fn get_in_use_p2pk(&self) -> bool {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use
-    //             .in_use_selected_descriptors
-    //             .contains(&CoveredDescriptors::P2pk),
-    //         None => false,
-    //     }
-    // }
-
-    // pub fn get_in_use_p2pkh(&self) -> bool {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use
-    //             .in_use_selected_descriptors
-    //             .contains(&CoveredDescriptors::P2pkh),
-    //         None => false,
-    //     }
-    // }
-
-    // pub fn get_in_use_p2wpkh(&self) -> bool {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use
-    //             .in_use_selected_descriptors
-    //             .contains(&CoveredDescriptors::P2wpkh),
-    //         None => false,
-    //     }
-    // }
-
-    // pub fn get_in_use_p2shwpkh(&self) -> bool {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use
-    //             .in_use_selected_descriptors
-    //             .contains(&CoveredDescriptors::P2shwpkh),
-    //         None => false,
-    //     }
-    // }
-
-    // pub fn get_in_use_p2tr(&self) -> bool {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use
-    //             .in_use_selected_descriptors
-    //             .contains(&CoveredDescriptors::P2tr),
-    //         None => false,
-    //     }
-    // }
-
-    // pub fn get_in_use_data_dir(&self) -> String {
-    //     match &self.in_use {
-    //         Some(in_use) => in_use.in_use_data_dir.to_string(),
-    //         None => "".to_string(),
-    //     }
-    // }
-
     pub fn get_in_use_mnemonic(&self) -> String {
         match &self.in_use {
             Some(in_use) => in_use.in_use_mnemonic.to_string(),
@@ -329,18 +205,6 @@ impl ExplorerInput {
         self.gui_input.gui_exploration_depth.is_sane()
     }
 
-    // pub fn is_gui_selected_descriptors_sane(&self) -> bool {
-    //     self.get_gui_p2pk()
-    //         || self.get_gui_p2pkh()
-    //         || self.get_gui_p2wpkh()
-    //         || self.get_gui_p2shwpkh()
-    //         || self.get_gui_p2tr()
-    // }
-
-    // pub fn is_gui_data_dir_sane(&self) -> bool {
-    //     self.gui_input.gui_data_dir.is_sane()
-    // }
-
     pub fn is_gui_mnemonic_sane(&self) -> bool {
         self.gui_input.gui_mnemonic.is_sane()
     }
@@ -351,11 +215,9 @@ impl ExplorerInput {
 
     pub fn is_gui_input_sane(&self) -> bool {
         self.is_gui_base_derivation_paths_sane()
-            // && self.is_gui_data_dir_sane()
             && self.is_gui_exploration_depth_sane()
             && self.is_gui_exploration_path_sane()
             && self.is_gui_passphrase_sane()
-            // && self.is_gui_selected_descriptors_sane()
             && self.is_gui_mnemonic_sane()
     }
 
@@ -375,19 +237,6 @@ impl ExplorerInput {
             && (self.get_gui_exploration_depth() == self.get_in_use_exploration_depth().to_string())
     }
 
-    // pub fn is_data_dir_fixed(&self) -> bool {
-    //     self.in_use.is_some() && (self.get_gui_data_dir() == self.get_in_use_data_dir())
-    // }
-
-    // pub fn is_selected_descriptors_fixed(&self) -> bool {
-    //     self.in_use.is_some()
-    //         && self.get_gui_p2pk() == self.get_in_use_p2pk()
-    //         && self.get_gui_p2pkh() == self.get_in_use_p2pkh()
-    //         && self.get_gui_p2wpkh() == self.get_in_use_p2wpkh()
-    //         && self.get_gui_p2shwpkh() == self.get_in_use_p2shwpkh()
-    //         && self.get_gui_p2tr() == self.get_in_use_p2tr()
-    // }
-
     pub fn is_mnemonic_fixed(&self) -> bool {
         self.in_use.is_some() && (self.get_gui_mnemonic() == self.get_in_use_mnemonic())
     }
@@ -406,14 +255,17 @@ impl ExplorerInput {
                 == self.get_in_use_base_derivation_paths_from_presets())
     }
 
+    pub fn is_network_fixed(&self) -> bool {
+        self.in_use.is_some() && (self.get_gui_network() == self.get_in_use_network())
+    }
+
     pub fn is_input_fixed(&self) -> bool {
         self.is_base_derivation_paths_fixed()
-            // && self.is_data_dir_fixed()
             && self.is_exploration_depth_fixed()
             && self.is_exploration_path_fixed()
             && self.is_passphrase_fixed()
             && self.is_mnemonic_fixed()
-            // && self.is_selected_descriptors_fixed()
+            && self.is_network_fixed()
             && self.is_sweep_fixed()
             && self.is_base_derivation_paths_from_presets_fixed()
     }
@@ -427,12 +279,6 @@ pub struct ExplorerSettingFromGui {
     gui_sweep: bool,
     gui_exploration_depth: ExplorationDepthGuiData,
     gui_network: NetworkGuiData,
-    // gui_p2pk: bool,
-    // gui_p2pkh: bool,
-    // gui_p2wpkh: bool,
-    // gui_p2shwpkh: bool,
-    // gui_p2tr: bool,
-    // gui_data_dir: DataDirGuiData,
     gui_mnemonic: MnemonicGuiData,
     gui_passphrase: PassphraseGuiData,
 }
@@ -447,13 +293,7 @@ impl Default for ExplorerSettingFromGui {
             gui_exploration_depth: ExplorationDepthGuiData::new(
                 DEFAULT_EXPLORATION_DEPTH.to_string(),
             ),
-            // gui_p2pk: true,
-            // gui_p2pkh: true,
-            // gui_p2wpkh: true,
-            // gui_p2shwpkh: true,
-            // gui_p2tr: true,
             gui_network: NetworkGuiData::new(bitcoin::Network::Bitcoin),
-            // gui_data_dir: DataDirGuiData::new("".to_string()),
             gui_mnemonic: MnemonicGuiData::new(),
             gui_passphrase: PassphraseGuiData::new("".to_string()),
         }
@@ -556,31 +396,6 @@ impl NetworkGuiData {
     }
 }
 
-// #[derive(Debug)]
-// pub struct DataDirGuiData {
-//     data_dir: String,
-//     sanity: bool,
-// }
-
-// impl GuiInput for DataDirGuiData {
-//     fn new(value: String) -> Self {
-//         let data_dir = value.trim().to_string();
-//         let path = PathBuf::from_str(&data_dir).unwrap();
-//         let sanity = path.canonicalize().is_ok()
-//             && path.canonicalize().unwrap().exists()
-//             && path.canonicalize().unwrap().is_dir();
-//         DataDirGuiData { data_dir, sanity }
-//     }
-
-//     fn is_sane(&self) -> bool {
-//         self.sanity
-//     }
-
-//     fn get_value(&self) -> String {
-//         self.data_dir.to_owned()
-//     }
-// }
-
 #[derive(Debug)]
 pub struct MnemonicGuiData {
     mnemonic: text_editor::Content,
@@ -640,8 +455,6 @@ pub struct ExplorerSettingInUse {
     in_use_sweep: bool,
     in_use_exploration_depth: u32,
     in_use_network: bitcoin::Network,
-    // in_use_selected_descriptors: Vec<CoveredDescriptors>,
-    // in_use_data_dir: String,
     in_use_mnemonic: String,
     in_use_passphrase: String,
 }
