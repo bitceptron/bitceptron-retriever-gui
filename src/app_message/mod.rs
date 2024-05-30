@@ -4,8 +4,9 @@ use bitceptron_retriever::{
     client::BitcoincoreRpcClient,
     error::RetrieverError,
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
-    uspk_set::UnspentScriptPubKeysSet,
 };
+
+use crate::uspk_set::UnspentScriptPubKeysSet;
 
 use self::{
     setting_input_fixed::SettingInputFixedMessage, setting_input_in_gui::SettingInputInGuiMessage,

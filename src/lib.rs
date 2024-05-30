@@ -6,7 +6,6 @@ use bitceptron_retriever::{
     error::RetrieverError,
     explorer::{explorer_setting::ExplorerSetting, Explorer},
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
-    uspk_set::UnspentScriptPubKeysSet,
 };
 use iced::{
     executor,
@@ -22,6 +21,7 @@ use run_functions::{
 };
 use tokio_util::sync::CancellationToken;
 use tracing::error;
+use uspk_set::UnspentScriptPubKeysSet;
 use view_elements::{
     bitcoincore_client_setting_row, exploration_setting_row, final_finds::FinalFinds, results_row::results_row, retriever_setting_row, run_row::run_row
 };
@@ -35,6 +35,7 @@ pub mod retriever_styles;
 pub mod run_functions;
 pub mod status;
 pub mod view_elements;
+pub mod uspk_set;
 
 #[derive(Debug, Default)]
 pub struct RetrieverApp {

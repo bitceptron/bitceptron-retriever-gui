@@ -7,7 +7,6 @@ use bitceptron_retriever::{
     explorer::Explorer,
     path_pairs::{PathDescriptorPair, PathScanResultDescriptorTrio},
     setting::RetrieverSetting,
-    uspk_set::UnspentScriptPubKeysSet,
 };
 use bitcoin::{bip32::DerivationPath, key::Secp256k1};
 use itertools::Itertools;
@@ -17,7 +16,7 @@ use tokio::{join, sync::mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
 
-use crate::{view_elements::final_finds::FinalFinds, RetrieverApp};
+use crate::{uspk_set::UnspentScriptPubKeysSet, view_elements::final_finds::FinalFinds, RetrieverApp};
 
 pub fn create_client_setting(app: &RetrieverApp) -> ClientSetting {
     app.bitcoincore_client_setting_input.to_client_setting()
@@ -110,10 +109,9 @@ pub async fn populate_uspk_set(
     }
     info!("Dump file found.");
     let _ = tokio::select!(
-        _ = uspk_set.populate_with_dump_file(&dump_file_path_str) => {},
-        _ = cancellation_token.cancelled() => {},
+        _ = uspk_set.populate_with_dump_file(&dump_file_path_str, cancellation_token.clone()) => { return Ok(uspk_set) },
+        _ = cancellation_token.cancelled() => { return Ok(UnspentScriptPubKeysSet::new())},
     );
-    Ok(uspk_set)
 }
 
 pub async fn create_derivation_path_stream(
