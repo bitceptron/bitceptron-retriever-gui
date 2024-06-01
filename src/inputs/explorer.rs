@@ -5,7 +5,6 @@ use bitceptron_retriever::{
     explorer::{exploration_path::ExplorationPath, explorer_setting::ExplorerSetting},
 };
 use bitcoin::bip32::DerivationPath;
-use iced::widget::text_editor;
 
 use crate::gui_error::GuiError;
 
@@ -97,8 +96,8 @@ impl ExplorerInput {
         self.gui_input.gui_network = NetworkGuiData::new(network)
     }
 
-    pub fn update_mnemonic_from_gui_input(&mut self, action: text_editor::Action) {
-        self.gui_input.gui_mnemonic.update(action)
+    pub fn set_mnemonic_from_gui_input(&mut self, mnemonic: String) {
+        self.gui_input.gui_mnemonic = MnemonicGuiData::new(mnemonic)
     }
 
     pub fn set_passphrase_from_gui_input(&mut self, passphrase: String) {
@@ -294,7 +293,7 @@ impl Default for ExplorerSettingFromGui {
                 DEFAULT_EXPLORATION_DEPTH.to_string(),
             ),
             gui_network: NetworkGuiData::new(bitcoin::Network::Bitcoin),
-            gui_mnemonic: MnemonicGuiData::new(),
+            gui_mnemonic: MnemonicGuiData::new("".to_string()),
             gui_passphrase: PassphraseGuiData::new("".to_string()),
         }
     }
@@ -398,21 +397,18 @@ impl NetworkGuiData {
 
 #[derive(Debug)]
 pub struct MnemonicGuiData {
-    mnemonic: text_editor::Content,
+    mnemonic: String,
     sanity: bool,
 }
 
 impl MnemonicGuiData {
-    fn new() -> Self {
+    fn new(mnemonic: String) -> Self {
+        let mnemonic = mnemonic.trim().to_string();
+        let sanity = bip39::Mnemonic::from_str(mnemonic.as_str()).is_ok();
         MnemonicGuiData {
-            mnemonic: text_editor::Content::new(),
-            sanity: false,
+            mnemonic,
+            sanity,
         }
-    }
-
-    fn update(&mut self, action: text_editor::Action) {
-        self.mnemonic.perform(action);
-        self.sanity = bip39::Mnemonic::from_str(self.mnemonic.text().as_str()).is_ok();
     }
 
     fn is_sane(&self) -> bool {
@@ -420,7 +416,7 @@ impl MnemonicGuiData {
     }
 
     fn get_value(&self) -> String {
-        self.mnemonic.text()
+        self.mnemonic.clone()
     }
 }
 

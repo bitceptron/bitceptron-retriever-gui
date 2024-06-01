@@ -9,7 +9,7 @@ use bitceptron_retriever::{
 };
 use iced::{
     executor,
-    widget::{text_editor, Column},
+    widget:: Column,
     Application, Command,
 };
 use inputs::{
@@ -43,7 +43,6 @@ pub struct RetrieverApp {
     bitcoincore_client_setting_input: BitcoincoreClientInput,
     explorer_setting_input: ExplorerInput,
     retriever_specific_setting_input: RetrieverSpecificInput,
-    mnemonic_content: text_editor::Content,
     // Settings
     client_setting: ClientSetting,
     explorer_setting: ExplorerSetting,
@@ -100,9 +99,8 @@ impl Application for RetrieverApp {
                     .bitcoincore_client_setting_input
                     .set_cookie_path_from_gui_input(new_cookie_path),
                 SettingInputInGuiMessage::NetworkChanged(network) => self.explorer_setting_input.set_network_from_gui_input(network),
-                SettingInputInGuiMessage::MnemonicChanged(action) => {
-                    self.explorer_setting_input.update_mnemonic_from_gui_input(action.clone());
-                    self.mnemonic_content.perform(action)
+                SettingInputInGuiMessage::MnemonicChanged(mnemonic) => {
+                    self.explorer_setting_input.set_mnemonic_from_gui_input(mnemonic.clone());
                 },
                 SettingInputInGuiMessage::BaseDerivationPathsChanged(base_derivation_paths) => self.explorer_setting_input.set_base_derivation_paths_from_gui_input(base_derivation_paths),
                 SettingInputInGuiMessage::BaseDerivationPathsFromPresetsChanged(base_derivation_paths_from_presets) => {

@@ -17,6 +17,6 @@ pub enum SettingInputInGuiMessage {
     P2shwpkhInclusionChanged(bool),
     P2trInclusionChanged(bool),
     DataDirChanged(String),
-    MnemonicChanged(iced::widget::text_editor::Action),
+    MnemonicChanged(String),
     PassphraseChanged(String),
 }

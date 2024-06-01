@@ -1,7 +1,5 @@
 use iced::{
-    widget::{
-        text, Button, Checkbox, Column, PickList, Row, Rule, Space, Text, TextEditor, TextInput,
-    },
+    widget::{text, Button, Checkbox, Column, PickList, Row, Rule, Space, Text, TextInput},
     Alignment, Font, Length,
 };
 
@@ -110,17 +108,25 @@ pub fn exploration_setting_fix_button(app: &RetrieverApp) -> iced::Element<'_, A
         )
         .width(150)
         .height(30)
-        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle{is_fixed: app.explorer_setting_input.is_input_fixed()})))
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {
+            is_fixed: app.explorer_setting_input.is_input_fixed(),
+        })))
         .on_press(AppMessage::SettingInputGotFixed(
             SettingInputFixedMessage::ExplorerSettingFixed,
         ))
         .into()
     } else {
-        Button::new(text("Fix Settings").horizontal_alignment(iced::alignment::Horizontal::Center).vertical_alignment(iced::alignment::Vertical::Center))
-            .width(150)
-            .height(30)
-            .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {is_fixed: app.explorer_setting_input.is_input_fixed()})))
-            .into()
+        Button::new(
+            text("Fix Settings")
+                .horizontal_alignment(iced::alignment::Horizontal::Center)
+                .vertical_alignment(iced::alignment::Vertical::Center),
+        )
+        .width(150)
+        .height(30)
+        .style(iced::theme::Button::Custom(Box::new(FixButtonStyle {
+            is_fixed: app.explorer_setting_input.is_input_fixed(),
+        })))
+        .into()
     }
 }
 
@@ -223,14 +229,12 @@ pub fn network_selection_block(app: &RetrieverApp) -> iced::Element<'_, AppMessa
         .push(Text::new("network:"))
         .push(Space::new(7, 10))
         .push(PickList::new(
-            // ["Bitcoin", "Testnet", "Regtest", "Signet"],
             [
                 bitcoin::Network::Bitcoin,
                 bitcoin::Network::Testnet,
                 bitcoin::Network::Regtest,
                 bitcoin::Network::Signet,
             ],
-            // Some("Bitcoin"),
             Some(app.explorer_setting_input.get_gui_network()),
             |network| {
                 AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::NetworkChanged(
@@ -244,26 +248,41 @@ pub fn network_selection_block(app: &RetrieverApp) -> iced::Element<'_, AppMessa
 
 pub fn mnemonic_block(app: &RetrieverApp) -> iced::Element<'_, AppMessage> {
     Row::new()
-        .push(text("mnemonic:"))
-        .push(Space::new(21, 10))
-        .push(
-            TextEditor::new(&app.mnemonic_content)
-                .height(50)
-                .on_action(|action| {
-                    AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::MnemonicChanged(
-                        action,
-                    ))
-                }),
-        )
-        .push(Space::new(1, 10))
-        .push(
-            Button::new("")
-                .height(50)
-                .style(iced::theme::Button::Custom(Box::new(SanityCheckLight {
-                    is_sane: app.explorer_setting_input.is_gui_mnemonic_sane(),
-                    is_fixed: app.explorer_setting_input.is_mnemonic_fixed(),
-                }))),
-        )
+        .push(sanity_checked_text_input(
+            app,
+            25,
+            None,
+            "mnemonics:".to_string(),
+            "".to_string(),
+            app.explorer_setting_input.get_gui_mnemonic(),
+            Box::new(|mnemonic| {
+                AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::MnemonicChanged(
+                    mnemonic,
+                ))
+            }),
+            app.explorer_setting_input.is_gui_mnemonic_sane(),
+            app.explorer_setting_input.is_mnemonic_fixed(),
+        ))
+        // .push(text("mnemonic:"))
+        // .push(Space::new(21, 10))
+        // .push(
+        //     TextEditor::new(&app.mnemonic_content)
+        //         .height(50)
+        //         .on_action(|action| {
+        //             AppMessage::SettingInputInGuiChanged(SettingInputInGuiMessage::MnemonicChanged(
+        //                 action,
+        //             ))
+        //         })
+        // )
+        // .push(Space::new(1, 10))
+        // .push(
+        //     Button::new("")
+        //         .height(50)
+        //         .style(iced::theme::Button::Custom(Box::new(SanityCheckLight {
+        //             is_sane: app.explorer_setting_input.is_gui_mnemonic_sane(),
+        //             is_fixed: app.explorer_setting_input.is_mnemonic_fixed(),
+        //         }))),
+        // )
         .align_items(Alignment::Center)
         .into()
 }
