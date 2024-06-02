@@ -108,10 +108,10 @@ pub async fn populate_uspk_set(
         return Err(RetrieverError::NoDumpFileInDataDir);
     }
     info!("Dump file found.");
-    let _ = tokio::select!(
-        _ = uspk_set.populate_with_dump_file(&dump_file_path_str, cancellation_token.clone()) => { return Ok(uspk_set) },
-        _ = cancellation_token.cancelled() => { return Ok(UnspentScriptPubKeysSet::new())},
-    );
+    tokio::select!(
+        _ = uspk_set.populate_with_dump_file(&dump_file_path_str, cancellation_token.clone()) => { Ok(uspk_set) },
+        _ = cancellation_token.cancelled() => { Ok(UnspentScriptPubKeysSet::new())},
+    )
 }
 
 pub async fn create_derivation_path_stream(

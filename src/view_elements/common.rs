@@ -23,8 +23,8 @@ pub fn sanity_checked_text_input(
         .push(Space::new(7, light_height))
         .push(
             TextInput::new(&placeholder, &value)
-                .width(if input_width.is_some() {
-                    input_width.unwrap().into()
+                .width(if let Some(width) = input_width {
+                    width.into()
                 } else {
                     Length::Fill
                 })

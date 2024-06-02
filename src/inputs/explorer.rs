@@ -10,19 +10,10 @@ use crate::gui_error::GuiError;
 
 use super::gui_input::GuiInput;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ExplorerInput {
     gui_input: ExplorerSettingFromGui,
     in_use: Option<ExplorerSettingInUse>,
-}
-
-impl Default for ExplorerInput {
-    fn default() -> Self {
-        Self {
-            gui_input: Default::default(),
-            in_use: None,
-        }
-    }
 }
 
 impl ExplorerInput {
@@ -35,7 +26,7 @@ impl ExplorerInput {
             true => ExplorerSettingInUse {
                 in_use_base_derivation_paths: self
                     .get_gui_base_derivation_paths()
-                    .split(";")
+                    .split(';')
                     .map(|path| path.to_string())
                     .collect(),
                 in_use_base_derivation_paths_from_presets: self
@@ -405,10 +396,7 @@ impl MnemonicGuiData {
     fn new(mnemonic: String) -> Self {
         let mnemonic = mnemonic.trim().to_string();
         let sanity = bip39::Mnemonic::from_str(mnemonic.as_str()).is_ok();
-        MnemonicGuiData {
-            mnemonic,
-            sanity,
-        }
+        MnemonicGuiData { mnemonic, sanity }
     }
 
     fn is_sane(&self) -> bool {

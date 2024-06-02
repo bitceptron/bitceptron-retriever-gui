@@ -216,7 +216,7 @@ impl Application for RetrieverApp {
                     uspk_set,
                     explorer,
                     cancellation_token,
-                    ), |search_result| AppMessage::SearchResultPrepared(search_result),);
+                    ), AppMessage::SearchResultPrepared);
             },
             AppMessage::SearchResultPrepared(search_result) => {
                 self.finds = search_result;
@@ -238,7 +238,7 @@ impl Application for RetrieverApp {
                 });
             },
             AppMessage::DetailsReady(details) => {
-                self.detailed_finds = details.clone();
+                self.detailed_finds.clone_from(&details);
                 match create_final_finds(details) {
                     Ok(final_finds) => {
                         self.final_finds = final_finds; 

@@ -6,19 +6,10 @@ use crate::gui_error::GuiError;
 
 use super::gui_input::GuiInput;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct RetrieverSpecificInput {
     gui_input: RetrieverSpecificSettingFromGui,
     in_use: Option<RetrieverSpecificSettingInUse>,
-}
-
-impl Default for RetrieverSpecificInput {
-    fn default() -> Self {
-        Self {
-            gui_input: Default::default(),
-            in_use: None,
-        }
-    }
 }
 
 impl RetrieverSpecificInput {
